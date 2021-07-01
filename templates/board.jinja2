@@ -1,0 +1,37 @@
+{% extends 'base.jinja2' %}
+{% block content %}
+
+  <header class="w3-container {{ board.color }}">
+    <h2><i class="fa fa-bars fa-fw"></i> {{ board.name }}</h2>
+  </header>
+
+  <div class="w3-main w3-white">
+
+    {% for lane in board.lanes %}
+      <div class="w3-container {{ lane.color }} w3-center">
+	<p style="padding: 0px; margin: 2px">{{ lane.name }}</p>
+      </div>
+      <div class="w3-row">
+	{% for col in lane.columns %}
+	  <div class="w3-col l2">
+	    <div class="w3-container w3-white w3-center" style="">
+	      <p style="padding: 0px; margin: 2px">{{ col.name }}</p>
+	    </div>
+	    {% for item in col.items %}
+	      <a style="text-decoration: none;" href="/item/{{ item.id }}">
+		<div class="w3-small w3-panel {{ item.color }} " style="padding-left: 2px; padding-right: 2px; margin: 1px; margin-bottom: 2px;">
+		  <p style="white-space: nowrap; overflow:hidden; text-overflow:hidden; padding: 0px; margin: 2px">
+		    <strong>#{{ item.id }}</strong> - {{ item.assigned }}<br/>
+		    {{ item.name }}
+		  </p>
+		</div>
+	      </a>
+	    {% endfor %}
+	  </div>
+	{% endfor %}
+      </div>
+      <br/>
+    {% endfor %}
+  </div>
+
+{% endblock %}

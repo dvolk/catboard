@@ -1,0 +1,22 @@
+{% extends 'base.jinja2' %}
+
+{% block content %}
+
+  <header class="w3-container {{ item.color }}">
+    <h2><a href="{{ url_for('board', board_id=item.column.lane.board.id) }}"><i class="fa fa-arrow-left fa-fw"></i></a> {{ item.name }}</h2>
+  </header>
+
+  <div class="w3-main w3-white">
+
+    <div class="w3-container">
+      <p>Move to column:</p>
+      {% for column in item.column.lane.columns %}
+	<a class="w3-btn w3-blue" href="{{ url_for('item_move', item_id=item.id, column_id=column.id) }}">
+	    {{ column.name }}
+	</a>
+      {% endfor %}
+    </div>
+
+  </div>
+
+{% endblock %}
