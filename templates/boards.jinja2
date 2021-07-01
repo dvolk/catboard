@@ -1,0 +1,29 @@
+{% extends 'base.jinja2' %}
+
+{% block content %}
+
+  <header class="w3-container w3-indigo">
+    <h2><i class="fa fa-bank fa-fw"></i> Board List</h2>
+  </header>
+
+  {% for board in boards %}
+    <div class="w3-container w3-leftbar w3-white w3-panel">
+      <h3>
+	<a style="text-decoration: none;" href="/board/{{ board.id }}">{{ board.name }}</a> <a href="/board/{{ board.id }}/edit"><i class="fa fa-cog fa-fw"></i></a>
+    </div>
+  {% endfor %}
+
+  <div class="w3-container w3-pale-yellow w3-panel">
+    <h3>Create new board</h3>
+    <p>
+      <form method="POST">
+	<label>New board name:</label>
+	<input class="w3-input" type="text" name="new_board_name"/>
+    </p>
+    <p>
+      <button class="w3-input w3-blue" type="Submit" value="Submit">Submit</button>
+    </p>
+    </form>
+  </div>
+ 
+{% endblock %}

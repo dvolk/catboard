@@ -11,6 +11,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
@@ -47,46 +48,83 @@ colors = [
     "w3-deep-purple",
     "w3-indigo",
     "w3-blue",
-    "w3-light-blue",
-    "w3-cyan",
-    "w3-aqua",
     "w3-teal",
     "w3-green",
-    "w3-light-green",
-    "w3-lime",
-    "w3-sand",
-    "w3-khaki",
-    "w3-yellow",
-    "w3-amber",
-    "w3-orange",
     "w3-deep-orange",
     "w3-blue-gray",
     "w3-brown",
-    "w3-light-gray",
-    "w3-gray",
-    "w3-dark-gray",
-    "w3-pale-red",
-    "w3-pale-yellow",
-    "w3-pale-green",
-    "w3-pale-blue",
 ]
+
+
+@app.route("/boards", methods=["GET", "POST"])
+def boards():
+    boards = Board.query.all()
+    if flask.request.method == "GET":
+        return flask.render_template("boards.jinja2", boards=boards)
+    if flask.request.method == "POST":
+        unsafe_new_board_name = flask.request.form.get("new_board_name")
+        b = Board(name=unsafe_new_board_name)
+        db.session.add(b)
+        db.session.commit()
+        return flask.redirect(flask.url_for("boards"))
 
 
 @app.route("/board/<board_id>")
 def board(board_id):
     board = Board.query.filter_by(id=board_id).first()
-    return flask.render_template("board.jinja2", board=board)
+    show_closed = flask.request.args.get("show_closed")
+    return flask.render_template("board.jinja2", board=board, show_closed=show_closed)
 
 
-@app.route("/item/<item_id>")
+@app.route("/board/<board_id>/edit", methods=["GET", "POST"])
+def board_edit(board_id):
+    board = Board.query.filter_by(id=board_id).first()
+    if flask.request.method == "GET":
+        return flask.render_template("board_edit.jinja2", board=board)
+    if flask.request.method == "POST":
+        if flask.request.form.get("Submit") == "Submit_rename_board":
+            unsafe_new_board_name = flask.request.form.get("new_board_name")
+            board.name = unsafe_new_board_name
+            db.session.commit()
+        if flask.request.form.get("Submit") == "Submit_new_lane":
+            unsafe_new_lane_name = flask.request.form.get("new_lane_name")
+            board.lanes.append(Lane(name=unsafe_new_lane_name))
+            db.session.commit()
+        return flask.redirect(flask.url_for("board_edit", board_id=board_id))
+
+
+@app.route("/lane/<lane_id>/edit", methods=["GET", "POST"])
+def lane_edit(lane_id):
+    lane = Lane.query.filter_by(id=lane_id).first()
+    if flask.request.method == "GET":
+        return flask.render_template("lane_edit.jinja2", lane=lane)
+    if flask.request.method == "POST":
+        if flask.request.form.get("Submit") == "Submit_rename_lane":
+            unsafe_new_lane_name = flask.request.form.get("new_lane_name")
+            lane.name = unsafe_new_lane_name
+            db.session.commit()
+        if flask.request.form.get("Submit") == "Submit_new_column":
+            unsafe_new_column_name = flask.request.form.get("new_column_name")
+            lane.columns.append(Column(name=unsafe_new_column_name))
+            db.session.commit()
+        return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
+
+
+@app.route("/item/<item_id>", methods=["GET", "POST"])
 def item(item_id):
     item = Item.query.filter_by(id=item_id).first()
-    return flask.render_template("item.jinja2", item=item)
-
-
-@app.route("/item/new", methods=["GET", "POST"])
-def item_new():
-    pass
+    if flask.request.method == "GET":
+        return flask.render_template("item.jinja2", item=item, colors=colors)
+    if flask.request.method == "POST":
+        if flask.request.form.get("Submit") == "Submit_change_assign":
+            unsafe_new_assign = flask.request.form.get("new_assign_name")
+            item.assigned = unsafe_new_assign
+            db.session.commit()
+        if flask.request.form.get("Submit") == "Submit_change_name":
+            unsafe_new_name = flask.request.form.get("new_name")
+            item.name = unsafe_new_name
+            db.session.commit()
+        return flask.redirect(flask.url_for("item", item_id=item_id))
 
 
 @app.route("/item/move/<item_id>/<column_id>")
@@ -96,6 +134,49 @@ def item_move(item_id, column_id):
     item.column = column
     db.session.commit()
     return flask.redirect(flask.url_for("item", item_id=item_id))
+
+
+@app.route("/item/color/<item_id>/<color>")
+def item_color(item_id, color):
+    item = Item.query.filter_by(id=item_id).first()
+    item.color = color
+    db.session.commit()
+    return flask.redirect(flask.url_for("item", item_id=item_id))
+
+
+@app.route("/item/toggle/<item_id>")
+def item_close_toggle(item_id):
+    item = Item.query.filter_by(id=item_id).first()
+    item.closed = not item.closed
+    db.session.commit()
+    return flask.redirect(flask.url_for("item", item_id=item_id))
+
+
+@app.route("/column/<column_id>/edit", methods=["GET", "POST"])
+def column_edit(column_id):
+    column = Column.query.filter_by(id=column_id).first()
+    if flask.request.method == "GET":
+        return flask.render_template("column_edit.jinja2", column=column, colors=colors)
+    if flask.request.method == "POST":
+        if flask.request.form.get("Submit") == "Submit_new_item":
+            unsafe_new_item_name = flask.request.form.get("new_item_name")
+            unsafe_new_item_assigned = flask.request.form.get("new_item_assigned")
+            unsafe_new_item_color = flask.request.form.get("new_item_color")
+            item = Item(
+                name=unsafe_new_item_name,
+                assigned=unsafe_new_item_assigned,
+                color=unsafe_new_item_color,
+                closed=False,
+                column=column,
+            )
+            column.items.append(item)
+            db.session.commit()
+        if flask.request.form.get("Submit") == "Submit_rename_column":
+            unsafe_new_column_name = flask.request.form.get("new_column_name")
+            column.name = unsafe_new_column_name
+            db.session.commit()
+        return flask.redirect(flask.url_for("board", board_id=column.lane.board.id))
+
 
 def main():
     app.run(debug=True)

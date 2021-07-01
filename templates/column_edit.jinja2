@@ -1,0 +1,49 @@
+{% extends 'base.jinja2' %}
+
+{% block content %}
+
+  <header class="w3-container w3-blue-gray">
+    <h2><a href="{{ url_for('board', board_id=column.lane.board.id) }}"><i class="fa fa-arrow-left fa-fw"></i></a> {{ column.name }}</h2>
+  </header>
+
+    <div class="w3-container w3-white w3-panel">
+      <p>
+	{{ column.lane.board.name }} - {{ column.lane.name }} - {{ column.name }}
+      </p>
+    </div>
+    
+    <div class="w3-container w3-pale-yellow">
+      <h3>New item</h3>
+      <p>
+	<form method="POST">
+	  <label>Name</label>
+	  <input class="w3-input" type="text" name="new_item_name"/>
+	  <label>Assigned</label>
+	  <input class="w3-input" type="text" name="new_item_assigned"/>
+	  <label>Color</label>
+	  <select name="new_item_color" class="w3-input">
+	    {% for color in colors %}
+	      <option value="{{ color }}">{{ color[3:].replace("_"," ")|capitalize }}</option>
+	    {% endfor %}
+	  </select>
+      </p>
+      <p>
+	<button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_new_item">Submit</button>
+      </p>
+      </form>
+    </div>
+
+    <div class="w3-container w3-pale-yellow w3-panel">
+      <h3>Rename column</h3>
+      <p>
+	<form method="POST">
+	  <label>New column name:</label>
+	  <input class="w3-input" type="text" name="new_column_name"/>
+      </p>
+      <p>
+	<button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_rename_column">Submit</button>
+      </p>
+      </form>
+    </div>
+
+{% endblock %}

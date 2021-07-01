@@ -1,0 +1,53 @@
+{% extends 'base.jinja2' %}
+
+{% block content %}
+
+  <header class="w3-container w3-indigo">
+    <h2><a href="{{ url_for('board', board_id=lane.board.id) }}"><i class="fa fa-arrow-left fa-fw"></i></a> Edit {{ lane.name }}</h2>
+  </header>
+
+  <div class="w3-container w3-white w3-panel">
+    <p>
+      {{ lane.board.name }} - {{ lane.name }}
+    </p>
+  </div>
+
+
+  {% if lane.columns %}
+    <div class="w3-container w3-panel w3-pale-red">
+      <p>Delete column:</p>
+      <p>
+	{% for column in lane.columns %}
+	  <a href="/column/{{ column.id }}/delete"><button class="w3-btn w3-red">{{ column.name }}</button></a>
+	{% endfor %}
+      </p>
+    </div>
+  {% endif %}
+
+  <div class="w3-container w3-pale-yellow w3-panel">
+    <h3>Rename lane</h3>
+    <p>
+      <form method="POST">
+	<label>New lane name:</label>
+	<input class="w3-input" type="text" name="new_lane_name"/>
+    </p>
+    <p>
+      <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_rename_lane">Submit</button>
+    </p>
+    </form>
+  </div>
+
+  <div class="w3-container w3-pale-yellow w3-panel">
+    <h3>Create new column</h3>
+    <p>
+      <form method="POST">
+	<label>New column name:</label>
+	<input class="w3-input" type="text" name="new_column_name"/>
+    </p>
+    <p>
+      <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_new_column" value="Submit">Submit</button>
+    </p>
+    </form>
+  </div>
+
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.jinja2' %}
+
+{% block content %}
+
+  <header class="w3-container w3-indigo">
+    <h2><a href="{{ url_for('boards') }}"><i class="fa fa-arrow-left fa-fw"></i></a> Edit {{ board.name }}</h2>
+  </header>
+
+  {% if board.lanes %}
+    <div class="w3-container w3-panel w3-pale-red">
+      <p>Delete lane:</p>
+      <p>
+	{% for lane in board.lanes %}
+	  <a href="/lane/{{ lane.id }}/delete"><button class="w3-btn w3-red">{{ lane.name }}</button></a>
+	{% endfor %}
+      </p>
+    </div>
+  {% endif %}
+
+  <div class="w3-container w3-pale-yellow w3-panel">
+    <h3>Rename board</h3>
+    <p>
+      <form method="POST">
+	<label>New board name:</label>
+	<input class="w3-input" type="text" name="new_board_name"/>
+    </p>
+    <p>
+      <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_rename_board">Submit</button>
+    </p>
+    </form>
+  </div>
+
+  <div class="w3-container w3-pale-yellow w3-panel">
+    <h3>Create new lane</h3>
+    <p>
+      <form method="POST">
+	<label>New lane name:</label>
+	<input class="w3-input" type="text" name="new_lane_name"/>
+    </p>
+    <p>
+      <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_new_lane">Submit</button>
+    </p>
+    </form>
+  </div>
+ 
+{% endblock %}
