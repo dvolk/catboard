@@ -138,14 +138,13 @@ def item(item_id):
     if flask.request.method == "GET":
         return flask.render_template("item.jinja2", item=item, colors=colors)
     if flask.request.method == "POST":
-        if flask.request.form.get("Submit") == "Submit_change_assign":
-            unsafe_new_assign = flask.request.form.get("new_assign_name")
-            item.assigned = unsafe_new_assign
-            db.session.commit()
-        if flask.request.form.get("Submit") == "Submit_change_name":
-            unsafe_new_name = flask.request.form.get("new_name")
-            item.name = unsafe_new_name
-            db.session.commit()
+        unsafe_new_assign = flask.request.form.get("new_assign_name")
+        item.assigned = unsafe_new_assign
+        unsafe_new_name = flask.request.form.get("new_name")
+        item.name = unsafe_new_name
+        unsafe_new_description = flask.request.form.get("new_description")
+        item.description = unsafe_new_description
+        db.session.commit()
         return flask.redirect(flask.url_for("item", item_id=item_id))
 
 

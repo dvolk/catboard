@@ -10,67 +10,62 @@
     <p>
       {{ item.column.lane.board.name }} - {{ item.column.lane.name }} - {{ item.column.name }}
     </p>
-    <p>Assigned to: {{ item.assigned }}</p>
-  </div>
-  
+    </div>
+
   <div class="w3-container w3-white">
-    <p>Move to column:</p>
     <p>
       {% for column in item.column.lane.columns %}
 	<a class="w3-btn {% if column.id == item.column.id %}w3-light-gray{% else %}w3-blue{% endif %} w3-round" href="{{ url_for('item_move', item_id=item.id, column_id=column.id) }}">
 	  {{ column.name }}
 	</a>
       {% endfor %}
-    </p>
+      </p>
   </div>
 
   <div class="w3-container w3-white">
-    <p>Actions:</p>
-    <p>
       <a class="w3-btn w3-blue w3-round" href="{{ url_for('item_close_toggle', item_id=item.id) }}">
 	{% if item.closed %}Set Open{% else %}Set Closed{% endif %}
       </a>
-    </p>
   </div>
 
   <div class="w3-container w3-white">
-    <p>Set color:</p>
     <p>
       {% for color in colors %}
 	<a class="w3-btn {{ color }} w3-round" href="{{ url_for('item_color', item_id=item.id, color=color) }}">
 	  {{ color[3:].replace("-", " ")|capitalize }}
 	</a>
       {% endfor %}
-    </p>
+      </p>
   </div>
 
-  <div class="w3-row-padding">
-    <div class="w3-half w3-pale-yellow w3-panel">
-      <h3>Change name:</h3>
+  <form method="POST">
+    <div class="w3-half w3-container w3-pale-yellow ">
       <p>
-	<form method="POST">
-	  <label>New name:</label>
-	  <input class="w3-input" type="text" name="new_name"/>
+	<label>Name:</label>
+	<input class="w3-input" type="text" value="{{ item.name }}" name="new_name"/>
       </p>
-      <p>
-	<button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_change_name">Submit</button>
-      </p>
-      </form>
     </div>
 
-    <div class="w3-half w3-pale-yellow w3-panel">
-      <h3>Change assignment:</h3>
+    <div class="w3-half w3-container w3-pale-yellow ">
       <p>
-	<form method="POST">
-	  <label>New assignment:</label>
-	  <input class="w3-input" type="text" name="new_assign_name"/>
+	<label>Assignment:</label>
+	<input class="w3-input" type="text" value="{{ item.assigned }}" name="new_assign_name"/>
       </p>
-      <p>
-	<button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_change_assign">Submit</button>
-      </p>
-      </form>
     </div>
 
-  </div>
+    <div class="w3-container w3-panel w3-pale-yellow ">
+      <p>
+	<label>Description:</label>
+<textarea rows=10 class="w3-input" type="text" name="new_description"/>{% if item.description %}{{ item.description }}{% endif %}</textarea>
+     </p>
+     <p>
+       <button class="w3-btn w3-blue" type="Submit" name="Submit" value="Submit">Save</button>
+     </p>
+     </div>
+  </form>
+
+
+
+
 
 {% endblock %}
