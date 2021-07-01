@@ -18,6 +18,7 @@ class Item(db.Model):
     assigned = db.Column(db.String(64), nullable=False)
     color = db.Column(db.String(64), nullable=False)
     closed = db.Column(db.Boolean, nullable=False)
+    description = db.Column(db.Text)
     column_id = db.Column(db.Integer, db.ForeignKey("column.id"), nullable=False)
     column = db.relationship("Column", backref=db.backref("items"), lazy=True)
 
@@ -64,6 +65,25 @@ def boards():
     if flask.request.method == "POST":
         unsafe_new_board_name = flask.request.form.get("new_board_name")
         b = Board(name=unsafe_new_board_name)
+        l = Lane(name="Default")
+        l.columns.append(Column(name="Backlog"))
+        l.columns.append(Column(name="Ready"))
+        c = Column(name="WIP")
+        c.items.append(
+            Item(
+                name="Click column to add items",
+                assigned="",
+                color="w3-indigo",
+                closed=False,
+                description="",
+            )
+        )
+        l.columns.append(c)
+        l.columns.append(Column(name="Blocked"))
+        l.columns.append(Column(name="QA"))
+        l.columns.append(Column(name="Done"))
+        b.lanes.append(l)
+
         db.session.add(b)
         db.session.commit()
         return flask.redirect(flask.url_for("boards"))
@@ -88,7 +108,8 @@ def board_edit(board_id):
             db.session.commit()
         if flask.request.form.get("Submit") == "Submit_new_lane":
             unsafe_new_lane_name = flask.request.form.get("new_lane_name")
-            board.lanes.append(Lane(name=unsafe_new_lane_name))
+            for x in unsafe_new_lane_name.split(","):
+                board.lanes.append(Lane(name=x))
             db.session.commit()
         return flask.redirect(flask.url_for("board_edit", board_id=board_id))
 
@@ -105,7 +126,8 @@ def lane_edit(lane_id):
             db.session.commit()
         if flask.request.form.get("Submit") == "Submit_new_column":
             unsafe_new_column_name = flask.request.form.get("new_column_name")
-            lane.columns.append(Column(name=unsafe_new_column_name))
+            for x in unsafe_new_column_name.split(","):
+                lane.columns.append(Column(name=x))
             db.session.commit()
         return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
 
