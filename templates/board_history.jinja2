@@ -1,0 +1,28 @@
+{% extends 'base.jinja2' %}
+{% block content %}
+
+  <header class="w3-container w3-white">
+    <h2>
+      <a href="{{ url_for("boards") }}"><i class="fa fa-arrow-left fa-fw"></i></a> {{ board.name }}
+    </h2>
+  </header>
+
+  <div class="w3-container w3-white w3-panel">
+    <h3>History</h3>
+    <ul class="w3-ul">
+      {% for t in board_transitions %}
+	{% if t.from_column %}
+	  {% if t.from_column.id < t.to_column.id %}
+	    <li class="w3-pale-green"><i class="fa fa-calendar fa-fw"></i> {{ nice_time(t.epochtime) }} &nbsp; #{{ t.item.id }} "{{ t.item.name }}"&nbsp; <strong>{{ t.from_column.name }}</strong> &nbsp;<i class="fa fa-arrow-right fa-fw"></i> &nbsp;<strong>{{ t.to_column.name }}</strong></li>
+	  {% else %}
+	    <li class="w3-pale-red"><i class="fa fa-calendar fa-fw"></i> {{ nice_time(t.epochtime) }} &nbsp; #{{ t.item.id }} "{{ t.item.name }}"&nbsp; <strong>{{ t.to_column.name }}</strong> &nbsp;<i class="fa fa-arrow-left fa-fw"></i>&nbsp; <strong>{{ t.from_column.name }}</strong></li>
+	  {% endif %}
+	{% else %}
+	  <li class="w3-pale-blue"><i class="fa fa-calendar fa-fw"></i> {{ nice_time(t.epochtime) }} &nbsp; <i class="fa fa-star fa-fw"></i> &nbsp;#{{ t.item.id }} "{{ t.item.name }}"&nbsp; <strong>{{ t.to_column.name }}</strong></li>
+	{% endif %}
+      {% endfor %}
+      <br/>
+    </ul>
+  </div>
+
+{% endblock %}
