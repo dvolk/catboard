@@ -79,6 +79,15 @@ def or_404(arg):
     return arg
 
 
+def icon(name):
+    return f'<i class="fa fa-{name} fa-fw"></i>'
+
+
+@app.context_processor
+def inject_globals():
+    return {"icon": icon}
+
+
 @app.route("/boards", methods=["GET", "POST"])
 def boards():
     boards = Board.query.all()
@@ -167,7 +176,7 @@ def board_edit(board_id):
         if flask.request.form.get("Submit") == "Submit_new_lane":
             unsafe_new_lane_name = flask.request.form.get("new_lane_name")
             for x in unsafe_new_lane_name.split(","):
-                board.lanes.append(Lane(name=x))
+                board.lanes.append(Lane(name=x.strip()))
             db.session.commit()
         return flask.redirect(flask.url_for("board_edit", board_id=board_id))
 
@@ -185,7 +194,7 @@ def lane_edit(lane_id):
         if flask.request.form.get("Submit") == "Submit_new_column":
             unsafe_new_column_name = flask.request.form.get("new_column_name")
             for x in unsafe_new_column_name.split(","):
-                lane.columns.append(Column(name=x))
+                lane.columns.append(Column(name=x.strip()))
             db.session.commit()
         return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
 
@@ -220,6 +229,8 @@ def item(item_id):
 @app.route("/item/move/<item_id>/<column_id>")
 def item_move(item_id, column_id):
     item = or_404(Item.query.filter_by(id=item_id).first())
+    if item.column.id == column_id:
+        return flask.redirect(flask.url_for("item", item_id=item_id))
     column = or_404(Column.query.filter_by(id=column_id).first())
     transition = ItemTransition(
         item_id=item.id,

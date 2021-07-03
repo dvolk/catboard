@@ -32,15 +32,16 @@
       </p>
   </div>
 
+  <div class="w3-half">
   <form method="POST">
-    <div class="w3-half w3-container w3-pale-yellow ">
+    <div class="w3-half w3-container w3-pale-yellow">
       <p>
 	<label>Name:</label>
 	<input class="w3-input" type="text" value="{{ item.name }}" name="new_name"/>
       </p>
     </div>
 
-    <div class="w3-half w3-container w3-pale-yellow ">
+    <div class="w3-half w3-container w3-pale-yellow">
       <p>
 	<label>Assignment:</label>
 	<input class="w3-input" type="text" value="{{ item.assigned }}" name="new_assign_name"/>
@@ -53,29 +54,30 @@
 <textarea rows=10 class="w3-input" type="text" name="new_description"/>{% if item.description %}{{ item.description }}{% endif %}</textarea>
 </p>
 <p>
-       <button class="w3-btn w3-blue" type="Submit" name="Submit" value="Submit">Save</button>
+       <button class="w3-btn w3-blue" type="Submit" name="Submit" value="Submit"><i class="fa fa-save fa-fw"></i> Save</button>
      </p>
 </div>
 </form>
-
+</div>
+  <div class="w3-half">
 <div class="w3-container w3-white w3-panel">
   <h3>History</h3>
   <ul class="w3-ul">
-    {% for t in item.transitions|reverse %}
+    {% for t in item.transitions|reverse if t.from_column != t.to_column %}
       {% if t.from_column %}
 	{% if t.from_column.id < t.to_column.id %}
-	  <li class="w3-pale-green"><i class="fa fa-calendar fa-fw"></i> {{ nice_time(t.epochtime) }} &nbsp; <strong>{{ t.from_column.name }}</strong> &nbsp;<i class="fa fa-arrow-right fa-fw"></i> &nbsp;<strong>{{ t.to_column.name }}</strong></li>
+	  <li class="w3-pale-green">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; <strong>{{ t.from_column.name }}</strong> &nbsp; {{ icon('arrow-right') }} <strong>{{ t.to_column.name }}</strong></li>
 	{% else %}
-	  <li class="w3-pale-red"><i class="fa fa-calendar fa-fw"></i> {{ nice_time(t.epochtime) }} &nbsp; <strong>{{ t.to_column.name }}</strong> &nbsp;<i class="fa fa-arrow-left fa-fw"></i>&nbsp; <strong>{{ t.from_column.name }}</strong></li>
+	  <li class="w3-pale-red">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; <strong>{{ t.to_column.name }}</strong> &nbsp; {{ icon('arrow-left') }} &nbsp; <strong>{{ t.from_column.name }}</strong></li>
 	  {% endif %}
       {% else %}
-	<li class="w3-pale-blue"><i class="fa fa-calendar fa-fw"></i> {{ nice_time(t.epochtime) }} &nbsp; <i class="fa fa-star fa-fw"></i> &nbsp;<strong>{{ t.to_column.name }}</strong></li>
+	<li class="w3-pale-blue">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; {{ icon('star') }} &nbsp; <strong>{{ t.to_column.name }}</strong></li>
       {% endif %}
     {% endfor %}
     <br/>
   </ul>
 </div>
-
+</div>
 
 
 
