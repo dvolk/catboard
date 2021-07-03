@@ -1,15 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
   <meta charset="UTF-8">
-  
-  <title>Catban</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png">
+  <link rel="manifest" href="/static/site.webmanifest">
+  <title>{{ title }}</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  {% block head %}
+  {% endblock %}
   <style>
     Html,body,h1,h2,h3,h4,h5 {font-family: "Raleway", sans-serif}
     pre { white-space: pre-wrap }
+    {% block style %}
+    {% endblock %}
   </style>
 
   <body class="w3-light-gray">
@@ -20,7 +27,8 @@
     {% endblock %}
 
     <script>
+      {% block script %}
+      {% endblock %}
     </script>
   </body>
 </html>
-

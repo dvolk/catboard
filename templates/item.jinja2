@@ -6,16 +6,10 @@
     <h2><a href="{{ url_for('board', board_id=item.column.lane.board.id) }}"><i class="fa fa-arrow-left fa-fw"></i></a> {{ item.name }}</h2>
   </header>
 
-  <div class="w3-container w3-white w3-panel">
-    <p>
-      {{ item.column.lane.board.name }} - {{ item.column.lane.name }} - {{ item.column.name }}
-    </p>
-    </div>
-
   <div class="w3-container w3-white">
     <p>
       {% for column in item.column.lane.columns %}
-	<a class="w3-btn {% if column.id == item.column.id %}w3-light-gray{% else %}w3-blue{% endif %} w3-round" href="{{ url_for('item_move', item_id=item.id, column_id=column.id) }}">
+	<a style="line-height: 1; margin: 1px;" class="w3-btn {% if column.id == item.column.id %}w3-light-gray{% else %}w3-blue{% endif %} w3-round" href="{{ url_for('item_move', item_id=item.id, column_id=column.id) }}">
 	  {{ column.name }}
 	</a>
       {% endfor %}
@@ -23,7 +17,7 @@
   </div>
 
   <div class="w3-container w3-white">
-      <a class="w3-btn w3-blue w3-round" href="{{ url_for('item_close_toggle', item_id=item.id) }}">
+      <a style="line-height: 1; margin: 1px;" class="w3-btn w3-blue w3-round" href="{{ url_for('item_close_toggle', item_id=item.id) }}">
 	{% if item.closed %}Set Open{% else %}Set Closed{% endif %}
       </a>
   </div>
@@ -31,7 +25,7 @@
   <div class="w3-container w3-white">
     <p>
       {% for color in colors %}
-	<a class="w3-btn {{ color }} w3-round" href="{{ url_for('item_color', item_id=item.id, color=color) }}">
+	<a style="line-height: 1; margin: 1px;" class="w3-btn {{ color }} w3-round" href="{{ url_for('item_color', item_id=item.id, color=color) }}">
 	  {{ color[3:].replace("-", " ")|capitalize }}
 	</a>
       {% endfor %}
@@ -57,13 +51,30 @@
       <p>
 	<label>Description:</label>
 <textarea rows=10 class="w3-input" type="text" name="new_description"/>{% if item.description %}{{ item.description }}{% endif %}</textarea>
-     </p>
-     <p>
+</p>
+<p>
        <button class="w3-btn w3-blue" type="Submit" name="Submit" value="Submit">Save</button>
      </p>
-     </div>
-  </form>
+</div>
+</form>
 
+<div class="w3-container w3-white w3-panel">
+  <h3>History</h3>
+  <ul class="w3-ul">
+    {% for t in item.transitions|reverse %}
+      {% if t.from_column %}
+	{% if t.from_column.id < t.to_column.id %}
+	  <li class="w3-pale-green"><i class="fa fa-calendar fa-fw"></i> {{ nice_time(t.epochtime) }} &nbsp; <strong>{{ t.from_column.name }}</strong> &nbsp;<i class="fa fa-arrow-right fa-fw"></i> &nbsp;<strong>{{ t.to_column.name }}</strong></li>
+	{% else %}
+	  <li class="w3-pale-red"><i class="fa fa-calendar fa-fw"></i> {{ nice_time(t.epochtime) }} &nbsp; <strong>{{ t.to_column.name }}</strong> &nbsp;<i class="fa fa-arrow-left fa-fw"></i>&nbsp; <strong>{{ t.from_column.name }}</strong></li>
+	  {% endif %}
+      {% else %}
+	<li class="w3-pale-blue"><i class="fa fa-calendar fa-fw"></i> {{ nice_time(t.epochtime) }} &nbsp; <i class="fa fa-star fa-fw"></i> &nbsp;<strong>{{ t.to_column.name }}</strong></li>
+      {% endif %}
+    {% endfor %}
+    <br/>
+  </ul>
+</div>
 
 
 
