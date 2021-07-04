@@ -22,7 +22,7 @@ class Item(db.Model):
     name = db.Column(db.String(256), nullable=False)
     assigned = db.Column(db.String(64), nullable=False)
     color = db.Column(db.String(64), nullable=False)
-    closed = db.Column(db.Boolean, nullable=False)
+    closed = db.Column(db.Boolean, nullable=False, default=False)
     description = db.Column(db.Text)
     column_id = db.Column(db.Integer, db.ForeignKey("column.id"), nullable=False)
     column = db.relationship("Column", backref=db.backref("items"), lazy=True)
@@ -42,6 +42,7 @@ class ItemTransition(db.Model):
 class Column(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
+    closed = db.Column(db.Boolean, nullable=False, default=False)
     lane_id = db.Column(db.Integer, db.ForeignKey("lane.id"), nullable=False)
     lane = db.relationship("Lane", backref=db.backref("columns"), lazy=True)
 
@@ -49,13 +50,17 @@ class Column(db.Model):
 class Lane(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
+    closed = db.Column(db.Boolean, nullable=False, default=False)
     board_id = db.Column(db.Integer, db.ForeignKey("board.id"), nullable=False)
     board = db.relationship("Board", backref=db.backref("lanes"), lazy=True)
+    columns_sorted = db.Column(db.String(512), nullable=True)
 
 
 class Board(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
+    closed = db.Column(db.Boolean, nullable=False, default=False)
+    lanes_sorted = db.Column(db.String(512), nullable=True)
 
 
 colors = [
@@ -83,9 +88,31 @@ def icon(name):
     return f'<i class="fa fa-{name} fa-fw"></i>'
 
 
+def list_reorder(list1, list2):
+    """
+    reorder list1 based on comma separated ids in list2
+
+    for sorting lanes and columnsa
+    """
+    if list2:
+        list2 = list2.split(",")
+        for l2 in list2:
+            for x in list1:
+                if x.id == int(l2):
+                    yield x
+    else:
+        for l1 in list1:
+            yield l1
+
+
 @app.context_processor
 def inject_globals():
-    return {"icon": icon}
+    return {"icon": icon, "list_reorder": list_reorder}
+
+
+@app.route("/")
+def index():
+    return flask.redirect(flask.url_for("boards"))
 
 
 @app.route("/boards", methods=["GET", "POST"])
@@ -167,7 +194,23 @@ def board_history(board_id):
 def board_edit(board_id):
     board = or_404(Board.query.filter_by(id=board_id).first())
     if flask.request.method == "GET":
-        return flask.render_template("board_edit.jinja2", board=board, title=board.name)
+        lane_id_to_name = {lane.id: lane.name for lane in board.lanes}
+        lane_names = [lane.name for lane in board.lanes]
+        lanes_sorted = None
+        if board.lanes_sorted:
+            lanes_sorted = [
+                lane_id_to_name[int(lane_id)]
+                for lane_id in board.lanes_sorted.split(",")
+            ]
+
+        return flask.render_template(
+            "board_edit.jinja2",
+            board=board,
+            title=board.name,
+            lane_names=lane_names,
+            lane_id_to_name=lane_id_to_name,
+            lanes_sorted=lanes_sorted,
+        )
     if flask.request.method == "POST":
         if flask.request.form.get("Submit") == "Submit_rename_board":
             unsafe_new_board_name = flask.request.form.get("new_board_name")
@@ -178,6 +221,16 @@ def board_edit(board_id):
             for x in unsafe_new_lane_name.split(","):
                 board.lanes.append(Lane(name=x.strip()))
             db.session.commit()
+        if flask.request.form.get("Submit") == "Submit_lanes_sorted":
+            unsafe_lanes_sorted = flask.request.form.get("lanes_sorted")
+            lane_name_to_id = {lane.name: lane.id for lane in board.lanes}
+            board.lanes_sorted = ",".join(
+                [
+                    str(lane_name_to_id[unsafe_lane_name.strip()])
+                    for unsafe_lane_name in unsafe_lanes_sorted.split(",")
+                ]
+            )
+            db.session.commit()
         return flask.redirect(flask.url_for("board_edit", board_id=board_id))
 
 
@@ -185,7 +238,21 @@ def board_edit(board_id):
 def lane_edit(lane_id):
     lane = or_404(Lane.query.filter_by(id=lane_id).first())
     if flask.request.method == "GET":
-        return flask.render_template("lane_edit.jinja2", lane=lane, title=lane.name)
+        column_id_to_name = {column.id: column.name for column in lane.columns}
+        column_names = [column.name for column in lane.columns]
+        columns_sorted = None
+        if lane.columns_sorted:
+            columns_sorted = [
+                column_id_to_name[int(column_id)]
+                for column_id in lane.columns_sorted.split(",")
+            ]
+        return flask.render_template(
+            "lane_edit.jinja2",
+            lane=lane,
+            title=lane.name,
+            column_names=column_names,
+            columns_sorted=columns_sorted,
+        )
     if flask.request.method == "POST":
         if flask.request.form.get("Submit") == "Submit_rename_lane":
             unsafe_new_lane_name = flask.request.form.get("new_lane_name")
@@ -196,7 +263,17 @@ def lane_edit(lane_id):
             for x in unsafe_new_column_name.split(","):
                 lane.columns.append(Column(name=x.strip()))
             db.session.commit()
-        return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
+        if flask.request.form.get("Submit") == "Submit_columns_sorted":
+            unsafe_columns_sorted = flask.request.form.get("columns_sorted")
+            column_name_to_id = {column.name: column.id for column in lane.columns}
+            lane.columns_sorted = ",".join(
+                [
+                    str(column_name_to_id[unsafe_column_name.strip()])
+                    for unsafe_column_name in unsafe_columns_sorted.split(",")
+                ]
+            )
+            db.session.commit()
+    return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
 
 
 @app.route("/item/<item_id>", methods=["GET", "POST"])

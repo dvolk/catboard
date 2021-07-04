@@ -50,4 +50,21 @@
     </form>
   </div>
 
+    <div class="w3-container w3-pale-yellow w3-panel">
+      <h3>Column sorting</h3>
+      <p>
+	<form method="POST">
+	  <label>Comma separated column order:</label>
+	  {% if not lane.columns_sorted %}
+	    <input class="w3-input" type="text" name="columns_sorted" value="{{ column_names|join(', ') }}"/>
+	  {% else %}
+	    <input class="w3-input" type="text" name="columns_sorted" value="{{ columns_sorted|join(', ') }}"/>
+	  {% endif %}
+      </p>
+      <p>List of all lanes: {{ column_names|join(', ') }}</p>
+      <p>
+	<button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_columns_sorted">Submit</button>
+      </p>
+      </form>
+    </div>
 {% endblock %}

@@ -6,10 +6,10 @@
     <h2><i class="fa fa-bank fa-fw"></i> Board List</h2>
   </header>
 
-  {% for board in boards %}
+  {% for board in boards if not board.closed %}
     <div class="w3-container w3-leftbar w3-white w3-panel">
       <h3>
-	<a style="text-decoration: none;" href="/board/{{ board.id }}">{{ board.name }}</a> <a href="/board/{{ board.id }}/history"><i class="fa fa-calendar fa-fw"></i></a> <a href="/board/{{ board.id }}/edit"><i class="fa fa-cog fa-fw"></i></a>
+	<a style="text-decoration: none;" href="/board/{{ board.id }}">{{ board.name }}</a> &nbsp; <a href="/board/{{ board.id }}/history"> {{ icon('calendar') }}</a> <a href="/board/{{ board.id }}/edit">{{ icon('cog') }}</i></a>
       </h3>
       <p>{% for lane in board.lanes %}<span style="padding-right: 10px;">{{ lane.name }}</span>{% endfor%}</p>
     </div>
