@@ -13,13 +13,13 @@
 	  {{ column.name }}
 	</a>
       {% endfor %}
-      </p>
+    </p>
   </div>
 
   <div class="w3-container w3-white">
-      <a style="line-height: 1; margin: 1px;" class="w3-btn w3-blue w3-round" href="{{ url_for('item_close_toggle', item_id=item.id) }}">
-	{% if item.closed %}Set Open{% else %}Set Closed{% endif %}
-      </a>
+    <a style="line-height: 1; margin: 1px;" class="w3-btn w3-blue w3-round" href="{{ url_for('item_close_toggle', item_id=item.id) }}">
+      {% if item.closed %}Set Open{% else %}Set Closed{% endif %}
+    </a>
   </div>
 
   <div class="w3-container w3-white">
@@ -29,56 +29,90 @@
 	  {{ color[3:].replace("-", " ")|capitalize }}
 	</a>
       {% endfor %}
-      </p>
+    </p>
   </div>
 
   <div class="w3-half">
-  <form method="POST">
-    <div class="w3-half w3-container w3-pale-yellow">
-      <p>
-	<label>Name:</label>
-	<input class="w3-input" type="text" value="{{ item.name }}" name="new_name"/>
-      </p>
-    </div>
+    <form method="POST">
+      <div class="w3-half w3-container w3-pale-yellow">
+	<p>
+	  <label>Name:</label>
+	  <input class="w3-input" type="text" value="{{ item.name }}" name="new_name"/>
+	</p>
+      </div>
 
-    <div class="w3-half w3-container w3-pale-yellow">
-      <p>
-	<label>Assignment:</label>
-	<input class="w3-input" type="text" value="{{ item.assigned }}" name="new_assign_name"/>
-      </p>
-    </div>
+      <div class="w3-half w3-container w3-pale-yellow">
+	<p>
+	  <label>Assignment:</label>
+	  <input class="w3-input" type="text" value="{{ item.assigned }}" name="new_assign_name"/>
+	</p>
+      </div>
 
-    <div class="w3-container w3-panel w3-pale-yellow ">
-      <p>
-	<label>Description:</label>
-<textarea rows=10 class="w3-input" type="text" name="new_description"/>{% if item.description %}{{ item.description }}{% endif %}</textarea>
+      <div class="w3-container w3-panel w3-pale-yellow">
+	<p>
+	  <label>Description:</label>
+	  <textarea id="description" rows=10 class="w3-input" type="text" name="new_description"/>{% if item.description %}{{ item.description }}{% endif %}</textarea>
 </p>
 <p>
-       <button class="w3-btn w3-blue" type="Submit" name="Submit" value="Submit"><i class="fa fa-save fa-fw"></i> Save</button>
-     </p>
+  <button type="button" class="w3-btn w3-blue" onclick="insert_date()">
+    {{ icon('calendar') }} Insert Date
+  </button>
+    <button class="w3-btn w3-green" name="Submit" value="Submit_print">
+      {{ icon('print') }} View
+    </button>
+  <button class="w3-btn w3-blue" name="Submit" value="Submit_save">
+    {{ icon('save') }} Save
+  </button>
+</p>
 </div>
 </form>
 </div>
-  <div class="w3-half">
-<div class="w3-container w3-white w3-panel">
-  <h3>History</h3>
-  <ul class="w3-ul">
-    {% for t in item.transitions|reverse if t.from_column != t.to_column %}
-      {% if t.from_column %}
-	{% if t.from_column.id < t.to_column.id %}
-	  <li class="w3-pale-green">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; <strong>{{ t.from_column.name }}</strong> &nbsp; {{ icon('arrow-right') }} <strong>{{ t.to_column.name }}</strong></li>
-	{% else %}
-	  <li class="w3-pale-red">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; <strong>{{ t.to_column.name }}</strong> &nbsp; {{ icon('arrow-left') }} &nbsp; <strong>{{ t.from_column.name }}</strong></li>
+<div class="w3-half">
+  <div class="w3-container w3-white w3-panel">
+    <h3>History</h3>
+    <ul class="w3-ul">
+      {% for t in item.transitions|reverse if t.from_column != t.to_column %}
+	{% if t.from_column %}
+	  {% if t.from_column.id < t.to_column.id %}
+	    <li class="w3-pale-green">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; <strong>{{ t.from_column.name }}</strong> &nbsp; {{ icon('arrow-right') }} <strong>{{ t.to_column.name }}</strong></li>
+	  {% else %}
+	    <li class="w3-pale-red">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; <strong>{{ t.to_column.name }}</strong> &nbsp; {{ icon('arrow-left') }} &nbsp; <strong>{{ t.from_column.name }}</strong></li>
 	  {% endif %}
-      {% else %}
-	<li class="w3-pale-blue">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; {{ icon('star') }} &nbsp; <strong>{{ t.to_column.name }}</strong></li>
-      {% endif %}
-    {% endfor %}
-    <br/>
-  </ul>
-</div>
+	{% else %}
+	  <li class="w3-pale-blue">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; {{ icon('star') }} &nbsp; <strong>{{ t.to_column.name }}</strong></li>
+	{% endif %}
+      {% endfor %}
+      <br/>
+    </ul>
+  </div>
 </div>
 
 
+
+{% endblock %}
+
+{% block script %}
+  function typeInTextarea(newText, el = document.activeElement) {
+  const start = el.selectionStart
+  const end = el.selectionEnd
+  const text = el.value
+  const before = text.substring(0, start)
+  const after  = text.substring(end, text.length)
+  el.value = (before + newText + after)
+  el.selectionStart = el.selectionEnd = start + newText.length
+  el.focus()
+  }
+
+  function insert_date() {
+  var today = new Date();
+  var dd = String(today.getDate()).padStart(2, '0');
+  var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+  var yyyy = today.getFullYear();
+  var hhh = String(today.getHours()).padStart(2, '0');
+  var mmm = String(today.getMinutes()).padStart(2, '0');
+
+  today = mm + '/' + dd + '/' + yyyy + ' ' + hhh + ':' + mmm
+  typeInTextarea(today, document.getElementById('description'))
+  }
 
 {% endblock %}

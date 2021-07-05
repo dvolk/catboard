@@ -1,3 +1,4 @@
+import base64
 import datetime as dt
 import random
 import time
@@ -7,6 +8,8 @@ import flask
 import humanize
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+
+import to_md
 
 app = flask.Flask(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -107,7 +110,7 @@ def list_reorder(list1, list2):
 
 @app.context_processor
 def inject_globals():
-    return {"icon": icon, "list_reorder": list_reorder}
+    return {"icon": icon, "list_reorder": list_reorder, "to_md": to_md.text_to_html}
 
 
 @app.route("/")
@@ -117,6 +120,8 @@ def index():
 
 @app.route("/boards", methods=["GET", "POST"])
 def boards():
+    print(flask.request.authorization)
+
     boards = Board.query.all()
     if flask.request.method == "GET":
         return flask.render_template(
@@ -224,12 +229,15 @@ def board_edit(board_id):
         if flask.request.form.get("Submit") == "Submit_lanes_sorted":
             unsafe_lanes_sorted = flask.request.form.get("lanes_sorted")
             lane_name_to_id = {lane.name: lane.id for lane in board.lanes}
-            board.lanes_sorted = ",".join(
-                [
-                    str(lane_name_to_id[unsafe_lane_name.strip()])
-                    for unsafe_lane_name in unsafe_lanes_sorted.split(",")
-                ]
-            )
+            try:
+                board.lanes_sorted = ",".join(
+                    [
+                        str(lane_name_to_id[unsafe_lane_name.strip()])
+                        for unsafe_lane_name in unsafe_lanes_sorted.split(",")
+                    ]
+                )
+            except:
+                return flask.redirect(flask.url_for("board_edit", board_id=board_id))
             db.session.commit()
         return flask.redirect(flask.url_for("board_edit", board_id=board_id))
 
@@ -266,12 +274,15 @@ def lane_edit(lane_id):
         if flask.request.form.get("Submit") == "Submit_columns_sorted":
             unsafe_columns_sorted = flask.request.form.get("columns_sorted")
             column_name_to_id = {column.name: column.id for column in lane.columns}
-            lane.columns_sorted = ",".join(
-                [
-                    str(column_name_to_id[unsafe_column_name.strip()])
-                    for unsafe_column_name in unsafe_columns_sorted.split(",")
-                ]
-            )
+            try:
+                lane.columns_sorted = ",".join(
+                    [
+                        str(column_name_to_id[unsafe_column_name.strip()])
+                        for unsafe_column_name in unsafe_columns_sorted.split(",")
+                    ]
+                )
+            except:
+                return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
             db.session.commit()
     return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
 
@@ -300,7 +311,15 @@ def item(item_id):
         unsafe_new_description = flask.request.form.get("new_description")
         item.description = unsafe_new_description
         db.session.commit()
+        if flask.request.form.get("Submit") == "Submit_print":
+            return flask.redirect(flask.url_for("item_view", item_id=item_id))
         return flask.redirect(flask.url_for("item", item_id=item_id))
+
+
+@app.route("/item/<item_id>/view")
+def item_view(item_id):
+    item = or_404(Item.query.filter_by(id=item_id).first())
+    return flask.render_template("item_view.jinja2", title=item.name, item=item)
 
 
 @app.route("/item/move/<item_id>/<column_id>")
