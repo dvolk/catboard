@@ -92,6 +92,9 @@
 {% endblock %}
 
 {% block script %}
+  var textarea = document.getElementById('description');
+  textarea.scrollTop = textarea.scrollHeight;
+
   function typeInTextarea(newText, el = document.activeElement) {
   const start = el.selectionStart
   const end = el.selectionEnd
