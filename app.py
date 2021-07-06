@@ -119,8 +119,6 @@ def index():
 
 @app.route("/boards", methods=["GET", "POST"])
 def boards():
-    print(flask.request.authorization)
-
     boards = Board.query.all()
     if flask.request.method == "GET":
         return flask.render_template(
