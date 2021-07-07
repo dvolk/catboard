@@ -1,4 +1,8 @@
 {% extends 'base.jinja2' %}
+{% block style %}
+  li:hover { opacity: 0.6; }
+{% endblock %}
+
 {% block content %}
 
   <header class="w3-container w3-white">
@@ -11,15 +15,15 @@
     <h3>History</h3>
     <ul class="w3-ul">
       {% for t in board_transitions if t.from_column != t.to_column %}
-	{% if t.from_column %}
-	  {% if t.from_column.id < t.to_column.id %}
-	    <li class="w3-pale-green">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; #{{ t.item.id }} "{{ t.item.name }}" &nbsp; <strong>{{ t.from_column.name }}</strong> &nbsp; {{ icon('arrow-right') }} &nbsp; <strong>{{ t.to_column.name }}</strong></li>
-	  {% else %}
-	    <li class="w3-pale-red">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; #{{ t.item.id }} "{{ t.item.name }}" &nbsp; <strong>{{ t.to_column.name }}</strong> &nbsp; {{ icon('arrow-left') }} &nbsp; <strong>{{ t.from_column.name }}</strong></li>
-	  {% endif %}
-	{% else %}
-	  <li class="w3-pale-blue">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; #{{ t.item.id }} "{{ t.item.name }}" &nbsp; {{ icon('star') }} &nbsp; <strong>{{ t.to_column.name }}</strong></li>
-	{% endif %}
+        {% if t.from_column %}
+          {% if t.from_column.id < t.to_column.id %}
+            <li class="w3-pale-green">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; #{{ t.item.id }} "{{ t.item.name }}" &nbsp; <strong>{{ t.from_column.name }}</strong> &nbsp; {{ icon('arrow-right') }} &nbsp; <strong>{{ t.to_column.name }}</strong></li>
+          {% else %}
+            <li class="w3-pale-red">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; #{{ t.item.id }} "{{ t.item.name }}" &nbsp; <strong>{{ t.to_column.name }}</strong> &nbsp; {{ icon('arrow-left') }} &nbsp; <strong>{{ t.from_column.name }}</strong></li>
+          {% endif %}
+        {% else %}
+          <li class="w3-pale-blue">{{ icon('calendar') }} {{ nice_time(t.epochtime) }} &nbsp; #{{ t.item.id }} "{{ t.item.name }}" &nbsp; {{ icon('star') }} &nbsp; <strong>{{ t.to_column.name }}</strong></li>
+        {% endif %}
       {% endfor %}
       <br/>
     </ul>

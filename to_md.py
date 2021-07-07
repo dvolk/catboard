@@ -15,8 +15,7 @@ pattern = (
 )
 link_patterns = [
     (re.compile(pattern), r"\1"),
-    (re.compile("post\s+(\d+)(#\d+)", re.I), r"/post/\1\2"),
-    (re.compile("post\s+(\d+)", re.I), r"/post/\1"),
+    (re.compile("#(\d+)", re.I), r"/item/\1"),
 ]
 
 

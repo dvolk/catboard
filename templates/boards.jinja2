@@ -1,5 +1,9 @@
 {% extends 'base.jinja2' %}
 
+{% block style %}
+  .board:hover { opacity: 0.8; }
+{% endblock %}
+
 {% block content %}
 
   <header class="w3-container w3-indigo">
@@ -7,9 +11,9 @@
   </header>
 
   {% for board in boards if not board.closed %}
-    <div class="w3-container w3-leftbar w3-white w3-panel">
+    <div class="board w3-container w3-leftbar w3-white w3-panel">
       <h3>
-	<a style="text-decoration: none;" href="/board/{{ board.id }}">{{ board.name }}</a> &nbsp; <a href="/board/{{ board.id }}/history"> {{ icon('calendar') }}</a> <a href="/board/{{ board.id }}/edit">{{ icon('cog') }}</i></a>
+        <a style="text-decoration: none;" href="/board/{{ board.id }}">{{ board.name }}</a> &nbsp; <a href="/board/{{ board.id }}/history"> {{ icon('calendar') }}</a> <a href="/board/{{ board.id }}/edit">{{ icon('cog') }}</i></a>
       </h3>
       <p>{% for lane in board.lanes %}<span style="padding-right: 10px;">{{ lane.name }}</span>{% endfor%}</p>
     </div>
@@ -19,13 +23,13 @@
     <h3>Create new board</h3>
     <p>
       <form method="POST">
-	<label>New board name:</label>
-	<input class="w3-input" type="text" name="new_board_name"/>
+        <label>New board name:</label>
+        <input class="w3-input" type="text" name="new_board_name"/>
     </p>
     <p>
       <button class="w3-input w3-blue" type="Submit" value="Submit">Submit</button>
     </p>
     </form>
   </div>
- 
+
 {% endblock %}

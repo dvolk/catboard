@@ -1,6 +1,7 @@
 import datetime as dt
 import random
 import time
+import re
 
 import argh
 import flask
@@ -25,6 +26,7 @@ class Item(db.Model):
     assigned = db.Column(db.String(64), nullable=False)
     color = db.Column(db.String(64), nullable=False)
     closed = db.Column(db.Boolean, nullable=False, default=False)
+    public = db.Column(db.Boolean, nullable=False, default=False)
     description = db.Column(db.Text)
     column_id = db.Column(db.Integer, db.ForeignKey("column.id"), nullable=False)
     column = db.relationship("Column", backref=db.backref("items"), lazy=True)
@@ -39,6 +41,29 @@ class ItemTransition(db.Model):
     to_column_id = db.Column(db.Integer, db.ForeignKey("column.id"), nullable=False)
     to_column = db.relationship("Column", foreign_keys=[to_column_id])
     epochtime = db.Column(db.Integer, nullable=False)
+
+
+class ItemRelationship(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item1_id = db.Column(db.Integer, db.ForeignKey("item.id"), nullable=False)
+    item1 = db.relationship(
+        "Item",
+        foreign_keys=[item1_id],
+        backref=db.backref("source_relationships"),
+        lazy=True,
+    )
+    item2_id = db.Column(db.Integer, db.ForeignKey("item.id"), nullable=False)
+    item2 = db.relationship(
+        "Item",
+        foreign_keys=[item2_id],
+        backref=db.backref("destination_relationships"),
+        lazy=True,
+    )
+    # 100 - item2 is subtask of item1
+    type = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f"#{self.id} {self.item1.name} -> {self.item2.name}, type={self.type}"
 
 
 class Column(db.Model):
@@ -293,12 +318,14 @@ def item(item_id):
         return humanize.naturaltime(dt.timedelta(seconds=(time_now - t2))).capitalize()
 
     if flask.request.method == "GET":
+        rels = ItemRelationship.query.filter_by(item1_id=item.id, type=100).all()
         return flask.render_template(
             "item.jinja2",
             item=item,
             colors=colors,
             title=item.name,
             nice_time=nice_time,
+            rels=rels,
         )
     if flask.request.method == "POST":
         unsafe_new_assign = flask.request.form.get("new_assign_name")
@@ -307,6 +334,23 @@ def item(item_id):
         item.name = unsafe_new_name
         unsafe_new_description = flask.request.form.get("new_description")
         item.description = unsafe_new_description
+        if item.description:
+            ItemRelationship.query.filter_by(item1_id=item.id).delete()
+            db.session.commit()
+            subtask_ints = set()
+            for subtask in re.findall(r"subtask #(\d+)", item.description):
+                try:
+                    subtask_int = int(subtask)
+                except:
+                    pass
+                if subtask_int not in subtask_ints:
+                    db.session.add(
+                        ItemRelationship(
+                            item1_id=item.id, item2_id=subtask_int, type=100
+                        )
+                    )
+                    subtask_ints.add(subtask_int)
+
         db.session.commit()
         if flask.request.form.get("Submit") == "Submit_print":
             return flask.redirect(flask.url_for("item_view", item_id=item_id))
