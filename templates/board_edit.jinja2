@@ -8,11 +8,15 @@
 
   {% if board.lanes %}
     <div class="w3-container w3-panel w3-pale-red">
-      <p>Close lane:</p>
+      <p>Close or open lanes:</p>
       <p>
-	{% for lane in board.lanes %}
-	  <a href="/lane/{{ lane.id }}/delete"><button class="w3-btn w3-red">{{ lane.name }}</button></a>
-	{% endfor %}
+        {% for lane in board.lanes %}
+          <a href="{{ url_for('lane_close_toggle', lane_id=lane.id) }}"><button class="w3-btn w3-red">
+              {% if lane.closed %}Open{% else %}Close{% endif %}
+              {{ lane.name }}
+
+          </button></a>
+        {% endfor %}
       </p>
     </div>
   {% endif %}
@@ -21,8 +25,8 @@
     <h3>Rename board</h3>
     <p>
       <form method="POST">
-	<label>New board name:</label>
-	<input class="w3-input" type="text" name="new_board_name" value="{{ board.name }}"/>
+        <label>New board name:</label>
+        <input class="w3-input" type="text" name="new_board_name" value="{{ board.name }}"/>
     </p>
     <p>
       <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_rename_board">Submit</button>
@@ -34,8 +38,8 @@
     <h3>Create new lane</h3>
     <p>
       <form method="POST">
-	<label>New lane name:</label>
-	<input class="w3-input" type="text" name="new_lane_name"/>
+        <label>New lane name:</label>
+        <input class="w3-input" type="text" name="new_lane_name"/>
     </p>
     <p>
       <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_new_lane">Submit</button>
@@ -47,12 +51,12 @@
     <h3>Lane sorting</h3>
     <p>
       <form method="POST">
-	<label>Comma separated lane order:</label>
-	{% if not board.lanes_sorted %}
-	  <input class="w3-input" type="text" name="lanes_sorted" value="{{ lane_names|join(', ') }}"/>
-	{% else %}
-	  <input class="w3-input" type="text" name="lanes_sorted" value="{{ lanes_sorted|join(', ') }}"/>
-	{% endif %}
+        <label>Comma separated lane order:</label>
+        {% if not board.lanes_sorted %}
+          <input class="w3-input" type="text" name="lanes_sorted" value="{{ lane_names|join(', ') }}"/>
+        {% else %}
+          <input class="w3-input" type="text" name="lanes_sorted" value="{{ lanes_sorted|join(', ') }}"/>
+        {% endif %}
     </p>
     <p>List of all lanes: {{ lane_names|join(', ') }}</p>
     <p>
@@ -60,5 +64,5 @@
     </p>
     </form>
   </div>
- 
+
 {% endblock %}

@@ -383,18 +383,35 @@ def item_move(item_id, column_id):
 
 @app.route("/item/color/<item_id>/<color>")
 def item_color(item_id, color):
+    or_404(color in colors)
     item = or_404(Item.query.filter_by(id=item_id).first())
     item.color = color
     db.session.commit()
     return flask.redirect(flask.url_for("item", item_id=item_id))
 
 
-@app.route("/item/toggle/<item_id>")
+@app.route("/item/<item_id>/toggle")
 def item_close_toggle(item_id):
     item = or_404(Item.query.filter_by(id=item_id).first())
     item.closed = not item.closed
     db.session.commit()
     return flask.redirect(flask.url_for("item", item_id=item_id))
+
+
+@app.route("/column/<column_id>/toggle")
+def column_close_toggle(column_id):
+    column = or_404(Column.query.filter_by(id=column_id).first())
+    column.closed = not column.closed
+    db.session.commit()
+    return flask.redirect(flask.url_for("lane_edit", lane_id=column.lane.id))
+
+
+@app.route("/lane/<lane_id>/toggle")
+def lane_close_toggle(lane_id):
+    lane = or_404(Lane.query.filter_by(id=lane_id).first())
+    lane.closed = not lane.closed
+    db.session.commit()
+    return flask.redirect(flask.url_for("board_edit", board_id=lane.board.id))
 
 
 @app.route("/column/<column_id>/edit", methods=["GET", "POST"])

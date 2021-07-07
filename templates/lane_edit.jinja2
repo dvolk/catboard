@@ -15,11 +15,15 @@
 
   {% if lane.columns %}
     <div class="w3-container w3-panel w3-pale-red">
-      <p>Delete column:</p>
+      <p>Close or open lanes:</p>
       <p>
-	{% for column in lane.columns %}
-	  <a href="/column/{{ column.id }}/delete"><button class="w3-btn w3-red">{{ column.name }}</button></a>
-	{% endfor %}
+        {% for column in lane.columns %}
+          <a href="{{ url_for('column_close_toggle', column_id=column.id) }}"><button class="w3-btn w3-red">
+              {% if column.closed %}Open{% else %}Close{% endif %}
+              {{ column.name }}
+
+          </button></a>
+        {% endfor %}
       </p>
     </div>
   {% endif %}
@@ -28,8 +32,8 @@
     <h3>Rename lane</h3>
     <p>
       <form method="POST">
-	<label>New lane name:</label>
-	<input class="w3-input" type="text" name="new_lane_name"/>
+        <label>New lane name:</label>
+        <input class="w3-input" type="text" name="new_lane_name"/>
     </p>
     <p>
       <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_rename_lane">Submit</button>
@@ -41,8 +45,8 @@
     <h3>Create new column</h3>
     <p>
       <form method="POST">
-	<label>New column name:</label>
-	<input class="w3-input" type="text" name="new_column_name"/>
+        <label>New column name:</label>
+        <input class="w3-input" type="text" name="new_column_name"/>
     </p>
     <p>
       <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_new_column" value="Submit">Submit</button>
@@ -53,17 +57,17 @@
     <div class="w3-container w3-pale-yellow w3-panel">
       <h3>Column sorting</h3>
       <p>
-	<form method="POST">
-	  <label>Comma separated column order:</label>
-	  {% if not lane.columns_sorted %}
-	    <input class="w3-input" type="text" name="columns_sorted" value="{{ column_names|join(', ') }}"/>
-	  {% else %}
-	    <input class="w3-input" type="text" name="columns_sorted" value="{{ columns_sorted|join(', ') }}"/>
-	  {% endif %}
+        <form method="POST">
+          <label>Comma separated column order:</label>
+          {% if not lane.columns_sorted %}
+            <input class="w3-input" type="text" name="columns_sorted" value="{{ column_names|join(', ') }}"/>
+          {% else %}
+            <input class="w3-input" type="text" name="columns_sorted" value="{{ columns_sorted|join(', ') }}"/>
+          {% endif %}
       </p>
       <p>List of all lanes: {{ column_names|join(', ') }}</p>
       <p>
-	<button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_columns_sorted">Submit</button>
+        <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_columns_sorted">Submit</button>
       </p>
       </form>
     </div>
