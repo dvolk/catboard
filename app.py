@@ -2,6 +2,7 @@ import datetime as dt
 import random
 import time
 import re
+import pathlib
 
 import argh
 import flask
@@ -417,15 +418,22 @@ def lane_close_toggle(lane_id):
 @app.route("/column/<column_id>/edit", methods=["GET", "POST"])
 def column_edit(column_id):
     column = or_404(Column.query.filter_by(id=column_id).first())
+    templates_dir = pathlib.Path("./item_templates")
+    templates = [x.name for x in templates_dir.glob("*.txt")]
     if flask.request.method == "GET":
         return flask.render_template(
-            "column_edit.jinja2", column=column, colors=colors, name=column.name
+            "column_edit.jinja2",
+            column=column,
+            colors=colors,
+            name=column.name,
+            templates=templates,
         )
     if flask.request.method == "POST":
         if flask.request.form.get("Submit") == "Submit_new_item":
             unsafe_new_item_name = flask.request.form.get("new_item_name")
             unsafe_new_item_assigned = flask.request.form.get("new_item_assigned")
             unsafe_new_item_color = flask.request.form.get("new_item_color")
+            unsafe_new_item_template = flask.request.form.get("new_item_template")
             item = Item(
                 name=unsafe_new_item_name,
                 assigned=unsafe_new_item_assigned,
@@ -433,6 +441,10 @@ def column_edit(column_id):
                 closed=False,
                 column=column,
             )
+            if unsafe_new_item_template in templates:
+                with open(templates_dir / unsafe_new_item_template) as f:
+                    item.description = f.read()
+
             column.items.append(item)
             db.session.commit()
             t = ItemTransition(
