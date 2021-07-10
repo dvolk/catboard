@@ -35,7 +35,7 @@
             </div>
             {% for item in col.items if (show_closed or not item.closed) %}
               <a style="text-decoration: none;" href="/item/{{ item.id }}">
-                <div id="{{ item.id }}" draggable="true" class="item draggable w3-small w3-panel {{ item.color }} " style="padding-left: 2px; padding-right: 2px; margin: 1px; margin-bottom: 2px;">
+                <div id="{{ item.id }}" draggable="true" class="item draggable w3-panel {{ item.color }} " style="padding-left: 2px; padding-right: 2px; margin: 1px; margin-bottom: 2px;">
                   <p style="white-space: nowrap; overflow:hidden; text-overflow:hidden; padding: 0px; margin: 2px">
                     <strong>#{{ item.id }}</strong> - {{ item.assigned }}<br/>
                     <span style="{% if item.closed %}text-decoration: line-through{% endif %}">{{ item.name }}</span>
