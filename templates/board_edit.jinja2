@@ -6,35 +6,9 @@
     <h2><a href="{{ url_for('boards') }}"><i class="fa fa-arrow-left fa-fw"></i></a> Edit {{ board.name }}</h2>
   </header>
 
-  {% if board.lanes %}
-    <div class="w3-container w3-panel w3-pale-red">
-      <p>Close or open lanes:</p>
-      <p>
-        {% for lane in board.lanes %}
-          <a href="{{ url_for('lane_close_toggle', lane_id=lane.id) }}"><button class="w3-btn w3-red">
-              {% if lane.closed %}Open{% else %}Close{% endif %}
-              {{ lane.name }}
+  <div class="w3-half">
 
-          </button></a>
-        {% endfor %}
-      </p>
-    </div>
-  {% endif %}
-
-  <div class="w3-container w3-pale-yellow w3-panel">
-    <h3>Rename board</h3>
-    <p>
-      <form method="POST">
-        <label>New board name:</label>
-        <input class="w3-input" type="text" name="new_board_name" value="{{ board.name }}" minlength=3 maxlength=64/>
-    </p>
-    <p>
-      <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_rename_board">Submit</button>
-    </p>
-    </form>
-  </div>
-
-  <div class="w3-container w3-pale-yellow w3-panel">
+  <div class="w3-container w3-pale-green w3-panel">
     <h3>Create new lane</h3>
     <p>
       <form method="POST">
@@ -64,5 +38,40 @@
     </p>
     </form>
   </div>
+
+
+  </div>
+  <div class="w3-half">
+
+
+
+  <div class="w3-container w3-pale-yellow w3-panel">
+    <h3>Rename board</h3>
+    <p>
+      <form method="POST">
+        <label>New board name:</label>
+        <input class="w3-input" type="text" name="new_board_name" value="{{ board.name }}" minlength=3 maxlength=64/>
+    </p>
+    <p>
+      <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_rename_board">Submit</button>
+    </p>
+    </form>
+  </div>
+
+  {% if board.lanes %}
+    <div class="w3-container w3-panel w3-pale-red">
+      <h3>Close or open lanes:</h3>
+      <p>
+        {% for lane in board.lanes %}
+          <a href="{{ url_for('lane_close_toggle', lane_id=lane.id) }}">
+            <button class="w3-btn {% if lane.closed %}w3-blue{% else %}w3-red{% endif %}" style="line-height: 1; margin: 1px;">
+              {% if lane.closed %}Open{% else %}Close{% endif %}
+              {{ lane.name }}
+
+          </button></a>
+        {% endfor %}
+      </p>
+    </div>
+  {% endif %}
 
 {% endblock %}

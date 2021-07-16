@@ -3,11 +3,12 @@
 {% block content %}
 
   <header class="w3-container w3-blue-gray">
-    <h2><a href="{{ url_for('board', board_id=column.lane.board.id) }}"><i class="fa fa-arrow-left fa-fw"></i></a> {{ column.name }}</h2>
+    <h2><a href="{{ url_for('board', board_id=column.lane.board.id) }}"><i class="fa fa-arrow-left fa-fw"></i></a> {{ column.lane.name }} - {{ column.name }}</h2>
   </header>
 
-    <div class="w3-container w3-half w3-panel w3-pale-yellow">
-      <h3>New item</h3>
+  <div class="w3-half">
+    <div class="w3-container w3-panel w3-pale-green">
+      <h3>Create new item</h3>
       <p>
         <form method="POST">
           <label>Name</label>
@@ -16,7 +17,7 @@
           <input class="w3-input" type="text" name="new_item_assigned"/>
           <label>Description template</label>
           <select name="new_item_template" class="w3-input">
-              <option value="">Empty</option>
+            <option value="">Empty</option>
             {% for template in templates %}
               <option value="{{ template }}">{{ template }}</option>
             {% endfor %}
@@ -24,27 +25,29 @@
           <label>Color</label>
           <select name="new_item_color" class="w3-input">
             {% for color in colors %}
-              <option value="{{ color }}">{{ color[3:].replace("_"," ")|capitalize }}</option>
+              <option {% if color == random_color %}selected="selected"{% endif %} value="{{ color }}">{{ color[3:].replace("_"," ")|capitalize }}</option>
             {% endfor %}
           </select>
       </p>
       <p>
         <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_new_item">{{ icon('arrow-right') }}</i> Submit</button>
-      </p>
-      </form>
-    </div>
+</p>
+</form>
+</div>
+</div>
 
-    <div class="w3-container w3-half w3-pale-yellow w3-panel">
+<div class="w3-half">
+    <div class="w3-container w3-panel w3-pale-yellow">
       <h3>Rename column</h3>
       <p>
         <form method="POST">
           <label>New column name:</label>
-          <input class="w3-input" type="text" name="new_column_name"/>
+          <input class="w3-input" type="text" name="new_column_name" value="{{ column.name }}"/>
       </p>
       <p>
         <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_rename_column">{{ icon('arrow-right') }} Submit</button>
       </p>
       </form>
     </div>
-
+</div>
 {% endblock %}

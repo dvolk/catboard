@@ -7,15 +7,15 @@
 {% block content %}
 
   <header class="w3-container w3-indigo">
-    <h2><i class="fa fa-bank fa-fw"></i> Board List</h2>
+    <h2><i class="fa fa-bank fa-fw"></i> <a href="{{ url_for('boards') }}">Board List</a></h2>
   </header>
 
   {% for board in boards if not board.closed %}
     <div class="board w3-container w3-leftbar w3-white w3-panel">
       <h3>
-        <a style="text-decoration: none;" href="/board/{{ board.id }}">{{ board.name }}</a> &nbsp; <a href="/board/{{ board.id }}/history"> {{ icon('calendar') }}</a> <a href="/board/{{ board.id }}/edit">{{ icon('cog') }}</i></a>
+        <a style="text-decoration: none;" href="/board/{{ board.id }}">{{ board.name }}</a> &nbsp; <a href="/board/{{ board.id }}/history"> {{ icon('calendar') }}</a> <a href="{{ url_for('board_graph', board_id=board.id) }}">{{ icon('map') }}</a> <a href="/board/{{ board.id }}/edit">{{ icon('cog') }}</a>
       </h3>
-      <p>{% for lane in board.lanes %}<span style="padding-right: 10px;">{{ lane.name }}</span>{% endfor%}</p>
+      <p>{% for lane in board.lanes %}<span style="padding-right: 10px;"><a href="{{ url_for('board', board_id=board.id) }}#lane_{{ lane.id }}">{{ lane.name }} </a></span>{% endfor%}</p>
     </div>
   {% endfor %}
 
@@ -31,5 +31,26 @@
     </p>
     </form>
   </div>
+
+  {% if boards %}
+    <div class="w3-container w3-panel w3-pale-red">
+      <p>Close or open boards:</p>
+      <p>
+        {% for board in boards %}
+          <a href="{{ url_for('board_close_toggle', board_id=board.id) }}">
+            <button class="w3-btn {% if board.closed %}w3-blue{% else %}w3-red{% endif %}" style="line-height: 1; margin: 1px;">
+              {% if board.closed %}Open{% else %}Close{% endif %}
+              {{ board.name }}
+          </button></a>
+        {% endfor %}
+      </p>
+    </div>
+  {% endif %}
+
+  {% if version %}
+    <div class="w3-container w3-panel w3-white">
+      <p>Catboard version: {{ version }}.</p>
+    </div>
+  {% endif %}
 
 {% endblock %}

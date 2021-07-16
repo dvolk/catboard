@@ -3,6 +3,10 @@ import random
 import time
 import re
 import pathlib
+import random
+import subprocess
+import shlex
+from collections import defaultdict
 
 import argh
 import flask
@@ -21,6 +25,13 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(256), nullable=False)
+    admin = db.Column(db.Boolean, nullable=False, default=False)
+    board_ids = db.Column(db.String(256))
+
+
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
@@ -31,6 +42,15 @@ class Item(db.Model):
     description = db.Column(db.Text)
     column_id = db.Column(db.Integer, db.ForeignKey("column.id"), nullable=False)
     column = db.relationship("Column", backref=db.backref("items"), lazy=True)
+
+    def get_subtask_items(self):
+        rels = ItemRelationship.query.filter_by(item1_id=self.item.id, type=100).all()
+        for rel in rels:
+            yield rel.item2
+
+    def get_parent_item(self):
+        rels = ItemRelationship.query.filter_by(item2_id=self.item.id, type=100).first()
+        return rel.item1
 
 
 class ItemTransition(db.Model):
@@ -120,7 +140,7 @@ def list_reorder(list1, list2):
     """
     reorder list1 based on comma separated ids in list2
 
-    for sorting lanes and columnsa
+    for sorting lanes and columns
     """
     if list2:
         list2 = list2.split(",")
@@ -133,9 +153,21 @@ def list_reorder(list1, list2):
             yield l1
 
 
+try:
+    cmd = "git describe --tags --always --dirty"
+    version = subprocess.check_output(shlex.split(cmd)).decode().strip()
+except:
+    version = None
+
+
 @app.context_processor
 def inject_globals():
-    return {"icon": icon, "list_reorder": list_reorder, "to_md": to_md.text_to_html}
+    return {
+        "version": version,
+        "icon": icon,
+        "list_reorder": list_reorder,
+        "to_md": to_md.text_to_html,
+    }
 
 
 @app.route("/")
@@ -269,6 +301,7 @@ def board_edit(board_id):
 def lane_edit(lane_id):
     lane = or_404(Lane.query.filter_by(id=lane_id).first())
     if flask.request.method == "GET":
+        boards = Board.query.all()
         column_id_to_name = {column.id: column.name for column in lane.columns}
         column_names = [column.name for column in lane.columns]
         columns_sorted = None
@@ -280,6 +313,7 @@ def lane_edit(lane_id):
         return flask.render_template(
             "lane_edit.jinja2",
             lane=lane,
+            boards=boards,
             title=lane.name,
             column_names=column_names,
             columns_sorted=columns_sorted,
@@ -288,6 +322,11 @@ def lane_edit(lane_id):
         if flask.request.form.get("Submit") == "Submit_rename_lane":
             unsafe_new_lane_name = flask.request.form.get("new_lane_name")
             lane.name = unsafe_new_lane_name
+            db.session.commit()
+        if flask.request.form.get("Submit") == "Submit_move_board":
+            unsafe_new_board_id = flask.request.form.get("new_board_id")
+            board = or_404(Board.query.filter_by(id=unsafe_new_board_id).first())
+            lane.board_id = unsafe_new_board_id
             db.session.commit()
         if flask.request.form.get("Submit") == "Submit_new_column":
             unsafe_new_column_name = flask.request.form.get("new_column_name")
@@ -382,6 +421,15 @@ def item_move(item_id, column_id):
     return flask.redirect(flask.url_for("item", item_id=item_id))
 
 
+@app.route("/lane/<lane_id>/move/<board_id>")
+def lane_move(lane_id, board_id):
+    lane = or_404(Lane.query.filter_by(id=lane_id).first())
+    board = or_404(Board.query.filter_by(id=board_id).first())
+    lane.board_id = board_id
+    db.session.commit()
+    return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
+
+
 @app.route("/item/color/<item_id>/<color>")
 def item_color(item_id, color):
     or_404(color in colors)
@@ -415,18 +463,29 @@ def lane_close_toggle(lane_id):
     return flask.redirect(flask.url_for("board_edit", board_id=lane.board.id))
 
 
+@app.route("/board/<board_id>/toggle")
+def board_close_toggle(board_id):
+    board = or_404(Board.query.filter_by(id=board_id).first())
+    board.closed = not board.closed
+    db.session.commit()
+    return flask.redirect(flask.url_for("boards"))
+
+
 @app.route("/column/<column_id>/edit", methods=["GET", "POST"])
 def column_edit(column_id):
     column = or_404(Column.query.filter_by(id=column_id).first())
     templates_dir = pathlib.Path("./item_templates")
     templates = [x.name for x in templates_dir.glob("*.txt")]
     if flask.request.method == "GET":
+        random_color = random.choice(colors)
+
         return flask.render_template(
             "column_edit.jinja2",
             column=column,
             colors=colors,
             name=column.name,
             templates=templates,
+            random_color=random_color,
         )
     if flask.request.method == "POST":
         if flask.request.form.get("Submit") == "Submit_new_item":
@@ -456,10 +515,34 @@ def column_edit(column_id):
             unsafe_new_column_name = flask.request.form.get("new_column_name")
             column.name = unsafe_new_column_name
             db.session.commit()
-        return flask.redirect(flask.url_for("board", board_id=column.lane.board.id))
+        return flask.redirect(flask.url_for("item", item_id=item.id))
+
+
+@app.route("/board/<board_id>/graph")
+def board_graph(board_id):
+    board = or_404(Board.query.filter_by(id=board_id).first())
+    return flask.render_template("graph.jinja2", board=board)
+
+
+@app.route("/board/<board_id>/tree")
+def board_tree(board_id):
+    board = or_404(Board.query.filter_by(id=board_id).first())
+    tree = defaultdict(defaultdict)
+    seen_item_ids = list()
+    items = list()
+
+    for lane in board.lanes:
+        for column in lane.columns:
+            items += column.items
+
+    for item in items:
+        pass
+
+    return flask.render_template("board_tree.jinja2", board=board)
 
 
 def main():
+    make_version_str()
     app.run(host="0.0.0.0", port=7777, debug=True)
 
 

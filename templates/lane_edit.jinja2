@@ -6,53 +6,20 @@
     <h2><a href="{{ url_for('board', board_id=lane.board.id) }}"><i class="fa fa-arrow-left fa-fw"></i></a> Edit {{ lane.name }}</h2>
   </header>
 
-  <div class="w3-container w3-white w3-panel">
-    <p>
-      {{ lane.board.name }} - {{ lane.name }}
-    </p>
-  </div>
+  <div class="w3-half">
 
-
-  {% if lane.columns %}
-    <div class="w3-container w3-panel w3-pale-red">
-      <p>Close or open lanes:</p>
+    <div class="w3-container w3-pale-green w3-panel">
+      <h3>Create new column</h3>
       <p>
-        {% for column in lane.columns %}
-          <a href="{{ url_for('column_close_toggle', column_id=column.id) }}"><button class="w3-btn w3-red">
-              {% if column.closed %}Open{% else %}Close{% endif %}
-              {{ column.name }}
-
-          </button></a>
-        {% endfor %}
+        <form method="POST">
+          <label>New column name:</label>
+          <input class="w3-input" type="text" name="new_column_name"/>
       </p>
+      <p>
+        <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_new_column" value="Submit">Submit</button>
+      </p>
+      </form>
     </div>
-  {% endif %}
-
-  <div class="w3-container w3-pale-yellow w3-panel">
-    <h3>Rename lane</h3>
-    <p>
-      <form method="POST">
-        <label>New lane name:</label>
-        <input class="w3-input" type="text" name="new_lane_name"/>
-    </p>
-    <p>
-      <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_rename_lane">Submit</button>
-    </p>
-    </form>
-  </div>
-
-  <div class="w3-container w3-pale-yellow w3-panel">
-    <h3>Create new column</h3>
-    <p>
-      <form method="POST">
-        <label>New column name:</label>
-        <input class="w3-input" type="text" name="new_column_name"/>
-    </p>
-    <p>
-      <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_new_column" value="Submit">Submit</button>
-    </p>
-    </form>
-  </div>
 
     <div class="w3-container w3-pale-yellow w3-panel">
       <h3>Column sorting</h3>
@@ -65,10 +32,63 @@
             <input class="w3-input" type="text" name="columns_sorted" value="{{ columns_sorted|join(', ') }}"/>
           {% endif %}
       </p>
-      <p>List of all lanes: {{ column_names|join(', ') }}</p>
+      <p>List of all columns: {{ column_names|join(', ') }}</p>
       <p>
-        <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_columns_sorted">Submit</button>
+        <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_move_board">Submit</button>
       </p>
       </form>
     </div>
+
+  </div>
+  <div class="w3-half">
+
+    <div class="w3-container w3-panel w3-pale-yellow">
+      <h3>Move to different board</h3>
+      <p>
+        <form method="POST">
+          <label>Select new board</label>
+          <select name="new_board_id" class="w3-input">
+            {% for board in boards %}
+              <option {% if lane.board_id == board.id %}selected=selected{% endif %} value="{{ board.id }}">{{ board.name }}</option>
+            {% endfor %}
+          </select>
+          <p>
+            <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_move_board">Submit</button>
+          </p>
+        </form>
+      </p>
+    </div>
+
+    <div class="w3-container w3-pale-yellow w3-panel">
+      <h3>Rename lane</h3>
+      <p>
+        <form method="POST">
+          <label>New lane name:</label>
+          <input class="w3-input" type="text" name="new_lane_name" value="{{ lane.name }}"/>
+      </p>
+      <p>
+        <button class="w3-input w3-blue" type="Submit" name="Submit" value="Submit_rename_lane">Submit</button>
+      </p>
+      </form>
+    </div>
+
+    {% if lane.columns %}
+      <div class="w3-container w3-panel w3-pale-red">
+        <h3>Close or open columns:</h3>
+        <p>
+          {% for column in lane.columns %}
+            <a href="{{ url_for('column_close_toggle', column_id=column.id) }}">
+              <button class="w3-btn {% if column.closed %}w3-blue{% else %}w3-red{% endif %}" style="line-height: 1; margin: 1px;">
+                {% if column.closed %}Open{% else %}Close{% endif %}
+                {{ column.name }}
+
+            </button></a>
+          {% endfor %}
+        </p>
+      </div>
+    {% endif %}
+
+  </div>
+
+
 {% endblock %}
