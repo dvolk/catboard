@@ -1,0 +1,109 @@
+{% extends 'base.jinja2' %}
+
+{% block head %}
+  <style>
+    #graph-container {
+      background-color: #fff;
+      top: 130px;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      position: absolute;
+    }
+  </style>
+
+  <!-- START SIGMA IMPORTS -->
+  <script src="/static/sigma.js/src/sigma.core.js"></script>
+  <script src="/static/sigma.js/src/conrad.js"></script>
+  <script src="/static/sigma.js/src/utils/sigma.utils.js"></script>
+  <script src="/static/sigma.js/src/utils/sigma.polyfills.js"></script>
+  <script src="/static/sigma.js/src/sigma.settings.js"></script>
+  <script src="/static/sigma.js/src/classes/sigma.classes.dispatcher.js"></script>
+  <script src="/static/sigma.js/src/classes/sigma.classes.configurable.js"></script>
+  <script src="/static/sigma.js/src/classes/sigma.classes.graph.js"></script>
+  <script src="/static/sigma.js/src/classes/sigma.classes.camera.js"></script>
+  <script src="/static/sigma.js/src/classes/sigma.classes.quad.js"></script>
+  <script src="/static/sigma.js/src/classes/sigma.classes.edgequad.js"></script>
+  <script src="/static/sigma.js/src/captors/sigma.captors.mouse.js"></script>
+  <script src="/static/sigma.js/src/captors/sigma.captors.touch.js"></script>
+  <script src="/static/sigma.js/src/renderers/sigma.renderers.canvas.js"></script>
+  <script src="/static/sigma.js/src/renderers/sigma.renderers.webgl.js"></script>
+  <script src="/static/sigma.js/src/renderers/sigma.renderers.svg.js"></script>
+  <script src="/static/sigma.js/src/renderers/sigma.renderers.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/webgl/sigma.webgl.nodes.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/webgl/sigma.webgl.nodes.fast.js"></script>
+  <script src="/static/sigma.js/src/renderers/webgl/sigma.webgl.edges.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/webgl/sigma.webgl.edges.fast.js"></script>
+  <script src="/static/sigma.js/src/renderers/webgl/sigma.webgl.edges.arrow.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.labels.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.hovers.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.nodes.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.edges.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.edges.curve.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.edges.arrow.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.edges.curvedArrow.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.edgehovers.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.edgehovers.curve.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.edgehovers.arrow.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.edgehovers.curvedArrow.js"></script>
+  <script src="/static/sigma.js/src/renderers/canvas/sigma.canvas.extremities.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/svg/sigma.svg.utils.js"></script>
+  <script src="/static/sigma.js/src/renderers/svg/sigma.svg.nodes.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/svg/sigma.svg.edges.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/svg/sigma.svg.edges.curve.js"></script>
+  <script src="/static/sigma.js/src/renderers/svg/sigma.svg.labels.def.js"></script>
+  <script src="/static/sigma.js/src/renderers/svg/sigma.svg.hovers.def.js"></script>
+  <script src="/static/sigma.js/src/middlewares/sigma.middlewares.rescale.js"></script>
+  <script src="/static/sigma.js/src/middlewares/sigma.middlewares.copy.js"></script>
+  <script src="/static/sigma.js/src/misc/sigma.misc.animation.js"></script>
+  <script src="/static/sigma.js/src/misc/sigma.misc.bindEvents.js"></script>
+  <script src="/static/sigma.js/src/misc/sigma.misc.bindDOMEvents.js"></script>
+  <script src="/static/sigma.js/src/misc/sigma.misc.drawHovers.js"></script>
+
+  <script src="/static/sigma.js/plugins/sigma.layout.forceAtlas2/worker.js"></script>
+  <script src="/static/sigma.js//plugins/sigma.layout.forceAtlas2/supervisor.js"></script>
+  <script src="/static/sigma.js/plugins/sigma.layout.forceAtlas2/worker.js"></script>
+  <script src="/static/sigma.js//plugins/sigma.layout.forceAtlas2/supervisor.js"></script>
+  <!-- END SIGMA IMPORTS -->
+{% endblock %}
+
+{% block content %}
+
+  <header class="w3-container w3-white">
+    <h2>
+      <a href="{{ url_for("boards") }}">{{ icon('arrow-left') }}</a> {{ board.name }}
+    </h2>
+  </header>
+
+    <div class="w3-container w3-panel w3-white" id="container">
+      <div id="graph-container"></div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+var g = {
+      nodes: [],
+      edges: []
+    };
+
+  {% for lane in board.lanes if not lane.closed %}
+    {% for column in lane.columns if not column.closed %}
+      {% for item in column.items if not item.closed %}
+        g.nodes.push({ id: "{{ item.id }}", label: "{{ item.name }} ({{ item.column.name }})", color: "#333", size:0.5, x:Math.random(), y:Math.random(),});
+        {% for rel in item.source_relationships %}
+          g.edges.push({ id: "{{ rel.id }}", source: "{{ rel.item1.id }}", target: "{{ rel.item2.id }}", color: '#ccc' });
+        {% endfor %}
+      {% endfor %}
+    {% endfor %}
+  {% endfor %}
+
+s = new sigma({
+  graph: g,
+  container: 'graph-container',
+  labelTreshold: 0,
+  });
+
+s.startForceAtlas2({worker: true, barnesHutOptimize: true});
+
+{% endblock %}
