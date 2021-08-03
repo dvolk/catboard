@@ -3,11 +3,8 @@ import random
 import time
 import re
 import pathlib
-import random
 import subprocess
 import shlex
-from collections import defaultdict
-import logging
 
 import argh
 import flask
@@ -36,15 +33,6 @@ class Item(db.Model):
     description = db.Column(db.Text)
     column_id = db.Column(db.Integer, db.ForeignKey("column.id"), nullable=False)
     column = db.relationship("Column", backref=db.backref("items"), lazy=True)
-
-    def get_subtask_items(self):
-        rels = ItemRelationship.query.filter_by(item1_id=self.item.id, type=100).all()
-        for rel in rels:
-            yield rel.item2
-
-    def get_parent_item(self):
-        rels = ItemRelationship.query.filter_by(item2_id=self.item.id, type=100).first()
-        return rel.item1
 
 
 class ItemTransition(db.Model):
@@ -319,7 +307,7 @@ def lane_edit(lane_id):
             db.session.commit()
         if flask.request.form.get("Submit") == "Submit_move_board":
             unsafe_new_board_id = flask.request.form.get("new_board_id")
-            board = or_404(Board.query.filter_by(id=unsafe_new_board_id).first())
+            or_404(Board.query.filter_by(id=unsafe_new_board_id).first())
             lane.board_id = unsafe_new_board_id
             db.session.commit()
         if flask.request.form.get("Submit") == "Submit_new_column":
@@ -418,7 +406,7 @@ def item_move(item_id, column_id):
 @app.route("/lane/<lane_id>/move/<board_id>")
 def lane_move(lane_id, board_id):
     lane = or_404(Lane.query.filter_by(id=lane_id).first())
-    board = or_404(Board.query.filter_by(id=board_id).first())
+    or_404(Board.query.filter_by(id=board_id).first())
     lane.board_id = board_id
     db.session.commit()
     return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
@@ -518,25 +506,7 @@ def board_graph(board_id):
     return flask.render_template("graph.jinja2", board=board)
 
 
-@app.route("/board/<board_id>/tree")
-def board_tree(board_id):
-    board = or_404(Board.query.filter_by(id=board_id).first())
-    tree = defaultdict(defaultdict)
-    seen_item_ids = list()
-    items = list()
-
-    for lane in board.lanes:
-        for column in lane.columns:
-            items += column.items
-
-    for item in items:
-        pass
-
-    return flask.render_template("board_tree.jinja2", board=board)
-
-
 def main():
-    make_version_str()
     app.run(host="0.0.0.0", port=7777, debug=True)
 
 
