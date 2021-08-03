@@ -9,7 +9,8 @@
 
 ## Screenshots
 
-![](https://i.imgur.com/A0dzAkZ.png) ![](https://i.imgur.com/aKLnBfg.png)
+<img src="https://i.imgur.com/A0dzAkZ.png" width=400> 
+<img src="https://i.imgur.com/aKLnBfg.png" width=400>
 
 ## Installation
 
