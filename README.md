@@ -17,6 +17,7 @@
     git clone https://gitea.mmmoxford.uk/dvolk/catboard
     cd catboard
     virtualenv env
+    source env/bin/activate
     pip3 install -r requirements.txt
     flask db upgrade
 
