@@ -9,7 +9,24 @@
 
 ## Screenshots
 
-<img src="https://i.imgur.com/A0dzAkZ.png" width=400> <img src="https://i.imgur.com/aKLnBfg.png" width=400>
+<table>
+    <tr>
+        <th>Board index</th>
+        <th>Issue view</th>
+    </tr>
+    <tr>
+        <td><img src="https://i.imgur.com/A0dzAkZ.png"></td>
+        <td><img src="https://i.imgur.com/ISJfIsC.png"></td>
+    </tr>
+    <tr>
+        <th>Board edit</th>
+        <th>Issue view</th>
+    </tr>
+    <tr>
+        <td><img src="https://i.imgur.com/NlYPuc5.png"></td>
+        <td><img src="https://i.imgur.com/aKLnBfg.png"></td>
+    </tr>
+</table>
 
 ## Installation
 
