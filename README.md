@@ -12,11 +12,11 @@
 <table>
     <tr>
         <th>Board index</th>
-        <th>Issue view</th>
+        <th>Board view</th>
     </tr>
     <tr>
-        <td><img src="https://i.imgur.com/A0dzAkZ.png"></td>
         <td><img src="https://i.imgur.com/ISJfIsC.png"></td>
+        <td><img src="https://i.imgur.com/A0dzAkZ.png"></td>
     </tr>
     <tr>
         <th>Board edit</th>
