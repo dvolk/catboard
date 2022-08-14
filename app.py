@@ -307,7 +307,7 @@ def lane_edit(lane_id):
             db.session.commit()
         if flask.request.form.get("Submit") == "Submit_move_board":
             unsafe_new_board_id = flask.request.form.get("new_board_id")
-            board = or_404(Board.query.filter_by(id=unsafe_new_board_id).first())
+            or_404(Board.query.filter_by(id=unsafe_new_board_id).first())
             lane.board_id = unsafe_new_board_id
             db.session.commit()
         if flask.request.form.get("Submit") == "Submit_new_column":
@@ -406,7 +406,7 @@ def item_move(item_id, column_id):
 @app.route("/lane/<lane_id>/move/<board_id>")
 def lane_move(lane_id, board_id):
     lane = or_404(Lane.query.filter_by(id=lane_id).first())
-    board = or_404(Board.query.filter_by(id=board_id).first())
+    or_404(Board.query.filter_by(id=board_id).first())
     lane.board_id = board_id
     db.session.commit()
     return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
