@@ -34,15 +34,6 @@ class Item(db.Model):
     column_id = db.Column(db.Integer, db.ForeignKey("column.id"), nullable=False)
     column = db.relationship("Column", backref=db.backref("items"), lazy=True)
 
-    def get_subtask_items(self):
-        rels = ItemRelationship.query.filter_by(item1_id=self.item.id, type=100).all()
-        for rel in rels:
-            yield rel.item2
-
-    def get_parent_item(self):
-        rels = ItemRelationship.query.filter_by(item2_id=self.item.id, type=100).first()
-        return rel.item1
-
 
 class ItemTransition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
