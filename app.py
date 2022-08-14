@@ -506,26 +506,8 @@ def board_graph(board_id):
     return flask.render_template("graph.jinja2", board=board)
 
 
-@app.route("/board/<board_id>/tree")
-def board_tree(board_id):
-    board = or_404(Board.query.filter_by(id=board_id).first())
-    tree = defaultdict(defaultdict)
-    seen_item_ids = list()
-    items = list()
-
-    for lane in board.lanes:
-        for column in lane.columns:
-            items += column.items
-
-    for item in items:
-        pass
-
-    return flask.render_template("board_tree.jinja2", board=board)
-
-
-def main():
-    make_version_str()
-    app.run(host="0.0.0.0", port=7777, debug=True)
+def main(host="127.0.0.1", port=7777, debug=False):
+    app.run(host=host, port=port, debug=debug)
 
 
 if __name__ == "__main__":
