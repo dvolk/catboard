@@ -3,11 +3,8 @@ import random
 import time
 import re
 import pathlib
-import random
 import subprocess
 import shlex
-from collections import defaultdict
-import logging
 
 import argh
 import flask
