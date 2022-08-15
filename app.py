@@ -5,6 +5,8 @@ import re
 import pathlib
 import subprocess
 import shlex
+import json
+import logging
 
 import argh
 import flask
@@ -155,6 +157,44 @@ def inject_globals():
 @app.route("/")
 def index():
     return flask.redirect(flask.url_for("boards"))
+
+
+def export_rows(cls):
+    rows = [x.__dict__ for x in cls.query.all()]
+    for row in rows:
+        del row["_sa_instance_state"]
+    return rows
+
+
+@app.route("/export_data")
+def export_data():
+    data = {
+        "Item": export_rows(Item),
+        "ItemTransition": export_rows(ItemTransition),
+        "ItemRelationship": export_rows(ItemRelationship),
+        "Column": export_rows(Column),
+        "Lane": export_rows(Lane),
+        "Board": export_rows(Board),
+    }
+    return "<pre>" + json.dumps(data, indent=4)
+
+
+def import_rows(rows, cls):
+    for row in rows:
+        obj = cls(*rows)
+        obj.save()
+
+
+@app.route("/import_data", methods=["POST"])
+def import_data():
+    data = request.form.get("data")
+    import_rows(data["Item"], Item)
+    import_rows(data["Itemtransition"], ItemTransition)
+    import_rows(data["Itemrelationship"], ItemRelationship)
+    import_rows(data["Column"], Column)
+    import_rows(data["Lane"], Lane)
+    import_rows(data["Board"], Board)
+    return "OK"
 
 
 @app.route("/boards", methods=["GET", "POST"])
