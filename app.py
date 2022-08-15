@@ -160,6 +160,7 @@ def index():
 
 
 def export_rows(cls):
+    """Export sqlalchemy class table data to json."""
     rows = [x.__dict__ for x in cls.query.all()]
     for row in rows:
         del row["_sa_instance_state"]
@@ -168,6 +169,7 @@ def export_rows(cls):
 
 @app.route("/export_data")
 def export_data():
+    """Export all catboard data to json."""
     data = {
         "Item": export_rows(Item),
         "ItemTransition": export_rows(ItemTransition),
@@ -180,20 +182,23 @@ def export_data():
 
 
 def import_rows(rows, cls):
+    """Import json dict to sqlalchemy table."""
     for row in rows:
-        obj = cls(*rows)
-        obj.save()
+        obj = cls(**row)
+        db.session.add(obj)
 
 
 @app.route("/import_data", methods=["POST"])
 def import_data():
-    data = request.form.get("data")
-    import_rows(data["Item"], Item)
-    import_rows(data["Itemtransition"], ItemTransition)
-    import_rows(data["Itemrelationship"], ItemRelationship)
-    import_rows(data["Column"], Column)
-    import_rows(data["Lane"], Lane)
+    """Import all catboard data from json."""
+    data = flask.request.json
     import_rows(data["Board"], Board)
+    import_rows(data["Lane"], Lane)
+    import_rows(data["Column"], Column)
+    import_rows(data["ItemRelationship"], ItemRelationship)
+    import_rows(data["ItemTransition"], ItemTransition)
+    import_rows(data["Item"], Item)
+    db.session.commit()
     return "OK"
 
 
