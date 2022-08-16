@@ -190,7 +190,12 @@ def import_rows(rows, cls):
 
 @app.route("/import_data", methods=["POST"])
 def import_data():
-    """Import all catboard data from json."""
+    """Import all catboard data from json.
+
+    To add data:
+
+        curl -X POST -H "Content-Type: application/json" -d @data.json http://127.0.0.1:7777/import_data
+    """
     data = flask.request.json
     import_rows(data["Board"], Board)
     import_rows(data["Lane"], Lane)
