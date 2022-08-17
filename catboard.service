@@ -1,0 +1,9 @@
+[Unit]
+Description=SP3 Catweb UI port 7000
+
+[Service]
+WorkingDirectory=/home/ubuntu/src/catboard
+ExecStart=/home/ubuntu/src/catboard/env/bin/python /home/ubuntu/src/catboard/app.py --port 7000
+
+[Install]
+WantedBy=default.target
