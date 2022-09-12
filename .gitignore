@@ -1,3 +1,5 @@
 *~
 *pycache*
 *.db
+.mypy_cache
+.ropeproject

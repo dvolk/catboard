@@ -6,7 +6,7 @@ import pathlib
 import subprocess
 import shlex
 import json
-import logging
+import os
 
 import argh
 import flask
@@ -19,7 +19,13 @@ import to_md
 app = flask.Flask(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # app.config["SQLALCHEMY_ECHO"] = True
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+
+if os.getenv("CATBOARD_SQLALCHEMY_DATABASE_URI"):
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+        "CATBOARD_SQLALCHEMY_DATABASE_URI"
+    )
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
