@@ -421,6 +421,10 @@ def item(item_id):
                     subtask_int = int(subtask)
                 except:
                     pass
+                # check if item exists
+                item2 = Item.query.filter_by(id=subtask_int).first()
+                if not item2:
+                    continue
                 if subtask_int not in subtask_ints:
                     db.session.add(
                         ItemRelationship(
