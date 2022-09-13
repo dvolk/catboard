@@ -19,7 +19,6 @@ import to_md
 app = flask.Flask(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # app.config["SQLALCHEMY_ECHO"] = True
-
 if os.getenv("CATBOARD_SQLALCHEMY_DATABASE_URI"):
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
         "CATBOARD_SQLALCHEMY_DATABASE_URI"
@@ -184,7 +183,7 @@ def export_data():
         "Lane": export_rows(Lane),
         "Board": export_rows(Board),
     }
-    return "<pre>" + json.dumps(data, indent=4)
+    return json.dumps(data, indent=4)
 
 
 def import_rows(rows, cls):
@@ -194,15 +193,22 @@ def import_rows(rows, cls):
         db.session.add(obj)
 
 
-@app.route("/import_data", methods=["POST"])
-def import_data():
-    """Import all catboard data from json.
+@app.route("/import_data_from_instance", methods=["POST"])
+def import_data_from_instance():
+    """Import data from a different instance."""
+    catboard_url = flask.request.form.get("instance_url")
+    catboard_export_url = catboard_url.rstrip("/") + "/export_data"
+    print(catboard_export_url)
+    import requests
 
-    To add data:
+    data = requests.get(catboard_export_url).json()
+    import_data(data)
 
-        curl -X POST -H "Content-Type: application/json" -d @data.json http://127.0.0.1:7777/import_data
-    """
-    data = flask.request.json
+    return flask.redirect(flask.url_for("index"))
+
+
+def import_data(data):
+    """Import data from json."""
     import_rows(data["Board"], Board)
     import_rows(data["Lane"], Lane)
     import_rows(data["Column"], Column)
@@ -210,6 +216,18 @@ def import_data():
     import_rows(data["ItemTransition"], ItemTransition)
     import_rows(data["Item"], Item)
     db.session.commit()
+
+
+@app.route("/import_data", methods=["POST"])
+def app_import_data():
+    """Import all catboard data from json.
+
+    To add data:
+
+        curl -X POST -H "Content-Type: application/json" -d @data.json http://127.0.0.1:7777/import_data
+    """
+    data = flask.request.json
+    import_data(data)
     return "OK"
 
 
