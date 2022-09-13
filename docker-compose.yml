@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - catboard_db_vol:/var/lib/postgresql/data
+  app:
+    image: catboard:latest
+    ports:
+      - 7777:7777
+    restart: always
+    environment:
+      - CATBOARD_SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@db:5432/postgres
+volumes:
+  catboard_db_vol:
