@@ -148,11 +148,18 @@ try:
 except:
     version = None
 
+try:
+    cmd = "hostname"
+    hostname = subprocess.check_output(shlex.split(cmd)).decode().strip()
+except:
+    hostname = None
+
 
 @app.context_processor
 def inject_globals():
     return {
         "version": version,
+        "hostname": hostname,
         "icon": icon,
         "list_reorder": list_reorder,
         "to_md": to_md.text_to_html,
