@@ -18,6 +18,7 @@ import to_md
 
 app = flask.Flask(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
 # app.config["SQLALCHEMY_ECHO"] = True
 if os.getenv("CATBOARD_SQLALCHEMY_DATABASE_URI"):
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
