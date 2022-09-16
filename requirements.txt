@@ -13,7 +13,7 @@ idna==3.3
 importlib-metadata==4.6.0
 itsdangerous==2.0.1
 Jinja2==3.0.1
-Mako==1.1.4
+Mako==1.2.2
 markdown2==2.4.3
 MarkupSafe==2.0.1
 psycopg2-binary==2.9.3
