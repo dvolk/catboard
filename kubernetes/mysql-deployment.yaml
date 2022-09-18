@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: catboard-mysql
+  labels:
+    app: catboard
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: catboard
+    tier: mysql
+  clusterIP: None
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+  labels:
+    app: catboard
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catboard-mysql
+  labels:
+    app: catboard
+spec:
+  selector:
+    matchLabels:
+      app: catboard
+      tier: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: catboard
+        tier: mysql
+    spec:
+      hostname: catboard-mysql
+      containers:
+      - image: mysql:8
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: root
+        - name: MYSQL_DATABASE
+          value: catboard
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim

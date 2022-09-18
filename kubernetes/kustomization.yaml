@@ -1,0 +1,3 @@
+resources:
+  - mysql-deployment.yaml
+  - catboard-deployment.yaml
