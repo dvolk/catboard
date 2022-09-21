@@ -1,5 +1,5 @@
 [Unit]
-Description=Catboard port 7000
+Description=Catboard port 7777
 
 [Service]
 WorkingDirectory=/home/ubuntu/src/catboard
