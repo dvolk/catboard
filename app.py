@@ -178,7 +178,7 @@ def export_data():
         "Lane": export_rows(Lane),
         "Board": export_rows(Board),
     }
-    return "<pre>" + json.dumps(data, indent=4)
+    return json.dumps(data, indent=4)
 
 
 def import_rows(rows, cls):
