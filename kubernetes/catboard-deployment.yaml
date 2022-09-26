@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: catboard
+  labels:
+    app: catboard
+spec:
+  ports:
+    - port: 7777
+  selector:
+    app: catboard
+    tier: frontend
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catboard
+  labels:
+    app: catboard
+spec:
+  selector:
+    matchLabels:
+      app: catboard
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: catboard
+        tier: frontend
+    spec:
+      containers:
+      - image: git.oxfordfun.com/dv/catboard:latest
+        name: catboard
+        env:
+        - name: CATBOARD_SQLALCHEMY_DATABASE_URI
+          value: mysql+pymysql://root:root@catboard-mysql:3306/catboard
+        ports:
+        - containerPort: 7777
+          name: catboard

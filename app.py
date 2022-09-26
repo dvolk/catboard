@@ -1,3 +1,5 @@
+"""Catboard web app."""
+
 import datetime as dt
 import random
 import time
@@ -6,7 +8,7 @@ import pathlib
 import subprocess
 import shlex
 import json
-import logging
+import os
 
 import argh
 import flask
@@ -18,14 +20,21 @@ import to_md
 
 app = flask.Flask(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-# app.config["SQLALCHEMY_ECHO"] = True
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
+if os.getenv("CATBOARD_SQLALCHEMY_DATABASE_URI"):
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+        "CATBOARD_SQLALCHEMY_DATABASE_URI"
+    )
+else:
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
 class Item(db.Model):
+    """Board item (task) class."""
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
     assigned = db.Column(db.String(64), nullable=False)
@@ -38,6 +47,8 @@ class Item(db.Model):
 
 
 class ItemTransition(db.Model):
+    """Class to store item events, such as moving between lanes."""
+
     id = db.Column(db.Integer, primary_key=True)
     item_id = db.Column(db.Integer, db.ForeignKey("item.id"), nullable=False)
     item = db.relationship("Item", backref=db.backref("transitions"), lazy=True)
@@ -49,6 +60,8 @@ class ItemTransition(db.Model):
 
 
 class ItemRelationship(db.Model):
+    """Class to store item relationships, such as subtasks."""
+
     id = db.Column(db.Integer, primary_key=True)
     item1_id = db.Column(db.Integer, db.ForeignKey("item.id"), nullable=False)
     item1 = db.relationship(
@@ -68,10 +81,13 @@ class ItemRelationship(db.Model):
     type = db.Column(db.Integer, nullable=False)
 
     def __repr__(self):
+        # TODO: is this used?
         return f"#{self.id} {self.item1.name} -> {self.item2.name}, type={self.type}"
 
 
 class Column(db.Model):
+    """Lane column class."""
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
     closed = db.Column(db.Boolean, nullable=False, default=False)
@@ -80,6 +96,8 @@ class Column(db.Model):
 
 
 class Lane(db.Model):
+    """Board lane class."""
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
     closed = db.Column(db.Boolean, nullable=False, default=False)
@@ -89,6 +107,8 @@ class Lane(db.Model):
 
 
 class Board(db.Model):
+    """Task board class."""
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256), nullable=False)
     closed = db.Column(db.Boolean, nullable=False, default=False)
@@ -111,20 +131,22 @@ colors = [
 
 
 def or_404(arg):
+    """Show 404 page if arg is false."""
     if not arg:
         return flask.abort(404)
     return arg
 
 
 def icon(name):
+    """Format html for fontawesome icons."""
     return f'<i class="fa fa-{name} fa-fw"></i>'
 
 
 def list_reorder(list1, list2):
     """
-    reorder list1 based on comma separated ids in list2
+    Reorder list1 based on comma separated ids in list2.
 
-    for sorting lanes and columns
+    for sorting lanes and columns.
     """
     if list2:
         list2 = list2.split(",")
@@ -140,14 +162,22 @@ def list_reorder(list1, list2):
 try:
     cmd = "git describe --tags --always --dirty"
     version = subprocess.check_output(shlex.split(cmd)).decode().strip()
-except:
-    version = None
+except Exception:
+    version = ""
+
+try:
+    cmd = "hostname"
+    hostname = subprocess.check_output(shlex.split(cmd)).decode().strip()
+except Exception:
+    hostname = ""
 
 
 @app.context_processor
 def inject_globals():
+    """Add some stuff into all templates."""
     return {
         "version": version,
+        "hostname": hostname,
         "icon": icon,
         "list_reorder": list_reorder,
         "to_md": to_md.text_to_html,
@@ -156,6 +186,7 @@ def inject_globals():
 
 @app.route("/")
 def index():
+    """Index page."""
     return flask.redirect(flask.url_for("boards"))
 
 
@@ -188,15 +219,22 @@ def import_rows(rows, cls):
         db.session.add(obj)
 
 
-@app.route("/import_data", methods=["POST"])
-def import_data():
-    """Import all catboard data from json.
+@app.route("/import_data_from_instance", methods=["POST"])
+def import_data_from_instance():
+    """Import data from a different instance."""
+    catboard_url = flask.request.form.get("instance_url")
+    catboard_export_url = catboard_url.rstrip("/") + "/export_data"
+    print(catboard_export_url)
+    import requests
 
-    To add data:
+    data = requests.get(catboard_export_url).json()
+    import_data(data)
 
-        curl -X POST -H "Content-Type: application/json" -d @data.json http://127.0.0.1:7777/import_data
-    """
-    data = flask.request.json
+    return flask.redirect(flask.url_for("index"))
+
+
+def import_data(data):
+    """Import data from json."""
     import_rows(data["Board"], Board)
     import_rows(data["Lane"], Lane)
     import_rows(data["Column"], Column)
@@ -204,11 +242,24 @@ def import_data():
     import_rows(data["ItemTransition"], ItemTransition)
     import_rows(data["Item"], Item)
     db.session.commit()
+
+
+@app.route("/import_data", methods=["POST"])
+def app_import_data():
+    """Import all catboard data from json.
+
+    To add data:
+
+        curl -X POST -H "Content-Type: application/json" -d @data.json http://127.0.0.1:7777/import_data
+    """
+    data = flask.request.json
+    import_data(data)
     return "OK"
 
 
 @app.route("/boards", methods=["GET", "POST"])
 def boards():
+    """Return boards template."""
     boards = Board.query.all()
     if flask.request.method == "GET":
         return flask.render_template(
@@ -218,9 +269,9 @@ def boards():
         unsafe_new_board_name = flask.request.form.get("new_board_name")
         # make new board with some defaults
         b = Board(name=unsafe_new_board_name)
-        l = Lane(name="Default")
-        l.columns.append(Column(name="Backlog"))
-        l.columns.append(Column(name="Ready"))
+        lane = Lane(name="Default")
+        lane.columns.append(Column(name="Backlog"))
+        lane.columns.append(Column(name="Ready"))
         c = Column(name="WIP")
         c.items.append(
             Item(
@@ -231,11 +282,11 @@ def boards():
                 description="",
             )
         )
-        l.columns.append(c)
-        l.columns.append(Column(name="Blocked"))
-        l.columns.append(Column(name="QA"))
-        l.columns.append(Column(name="Done"))
-        b.lanes.append(l)
+        lane.columns.append(c)
+        lane.columns.append(Column(name="Blocked"))
+        lane.columns.append(Column(name="QA"))
+        lane.columns.append(Column(name="Done"))
+        b.lanes.append(lane)
 
         db.session.add(b)
         db.session.commit()
@@ -244,6 +295,7 @@ def boards():
 
 @app.route("/board/<board_id>")
 def board(board_id):
+    """Return board template."""
     board = or_404(Board.query.filter_by(id=board_id).first())
     show_closed = flask.request.args.get("show_closed")
 
@@ -257,6 +309,7 @@ def board(board_id):
 
 @app.route("/board/<board_id>/history")
 def board_history(board_id):
+    """Return board history template."""
     board = or_404(Board.query.filter_by(id=board_id).first())
     time_now = int(time.time())
 
@@ -284,6 +337,12 @@ def board_history(board_id):
 
 @app.route("/board/<board_id>/edit", methods=["GET", "POST"])
 def board_edit(board_id):
+    """Return board edit template.
+
+    Here the user can rename the board, add a new lane, and sort lanes.
+
+    The sorting can also be used to hide lanes.
+    """
     board = or_404(Board.query.filter_by(id=board_id).first())
     if flask.request.method == "GET":
         lane_id_to_name = {lane.id: lane.name for lane in board.lanes}
@@ -323,7 +382,7 @@ def board_edit(board_id):
                         for unsafe_lane_name in unsafe_lanes_sorted.split(",")
                     ]
                 )
-            except:
+            except Exception:
                 return flask.redirect(flask.url_for("board_edit", board_id=board_id))
             db.session.commit()
         return flask.redirect(flask.url_for("board_edit", board_id=board_id))
@@ -331,6 +390,11 @@ def board_edit(board_id):
 
 @app.route("/lane/<lane_id>/edit", methods=["GET", "POST"])
 def lane_edit(lane_id):
+    """Return edit lane template.
+
+    Here the user can rename the lane, move the lane to a different board,
+    create a new column, and sort columns (which can also be used to hide columns.)
+    """
     lane = or_404(Lane.query.filter_by(id=lane_id).first())
     if flask.request.method == "GET":
         boards = Board.query.all()
@@ -375,7 +439,7 @@ def lane_edit(lane_id):
                         for unsafe_column_name in unsafe_columns_sorted.split(",")
                     ]
                 )
-            except:
+            except Exception:
                 return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
             db.session.commit()
     return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
@@ -383,6 +447,7 @@ def lane_edit(lane_id):
 
 @app.route("/item/<item_id>", methods=["GET", "POST"])
 def item(item_id):
+    """Return page showing item/task details."""
     item = or_404(Item.query.filter_by(id=item_id).first())
     time_now = int(time.time())
 
@@ -413,7 +478,7 @@ def item(item_id):
             for subtask in re.findall(r"subtask #(\d+)", item.description):
                 try:
                     subtask_int = int(subtask)
-                except:
+                except Exception:
                     pass
                 # check if item exists
                 item2 = Item.query.filter_by(id=subtask_int).first()
@@ -435,12 +500,14 @@ def item(item_id):
 
 @app.route("/item/<item_id>/view")
 def item_view(item_id):
+    """Return page showing item/task description as rendered markdown."""
     item = or_404(Item.query.filter_by(id=item_id).first())
     return flask.render_template("item_view.jinja2", title=item.name, item=item)
 
 
 @app.route("/item/move/<item_id>/<column_id>")
 def item_move(item_id, column_id):
+    """Move item to different column and redirect back to item page."""
     item = or_404(Item.query.filter_by(id=item_id).first())
     if item.column.id == column_id:
         return flask.redirect(flask.url_for("item", item_id=item_id))
@@ -459,6 +526,7 @@ def item_move(item_id, column_id):
 
 @app.route("/lane/<lane_id>/move/<board_id>")
 def lane_move(lane_id, board_id):
+    """Move lane to diferent board and redirect back to lane page."""
     lane = or_404(Lane.query.filter_by(id=lane_id).first())
     or_404(Board.query.filter_by(id=board_id).first())
     lane.board_id = board_id
@@ -468,6 +536,7 @@ def lane_move(lane_id, board_id):
 
 @app.route("/item/color/<item_id>/<color>")
 def item_color(item_id, color):
+    """Change item color."""
     or_404(color in colors)
     item = or_404(Item.query.filter_by(id=item_id).first())
     item.color = color
@@ -477,6 +546,7 @@ def item_color(item_id, color):
 
 @app.route("/item/<item_id>/toggle")
 def item_close_toggle(item_id):
+    """Toggle item open/close state."""
     item = or_404(Item.query.filter_by(id=item_id).first())
     item.closed = not item.closed
     db.session.commit()
@@ -485,6 +555,7 @@ def item_close_toggle(item_id):
 
 @app.route("/column/<column_id>/toggle")
 def column_close_toggle(column_id):
+    """Toggle column open/close state."""
     column = or_404(Column.query.filter_by(id=column_id).first())
     column.closed = not column.closed
     db.session.commit()
@@ -493,6 +564,7 @@ def column_close_toggle(column_id):
 
 @app.route("/lane/<lane_id>/toggle")
 def lane_close_toggle(lane_id):
+    """Toggle lane open/close state."""
     lane = or_404(Lane.query.filter_by(id=lane_id).first())
     lane.closed = not lane.closed
     db.session.commit()
@@ -501,6 +573,7 @@ def lane_close_toggle(lane_id):
 
 @app.route("/board/<board_id>/toggle")
 def board_close_toggle(board_id):
+    """Toggle board open/close state."""
     board = or_404(Board.query.filter_by(id=board_id).first())
     board.closed = not board.closed
     db.session.commit()
@@ -509,6 +582,7 @@ def board_close_toggle(board_id):
 
 @app.route("/column/<column_id>/edit", methods=["GET", "POST"])
 def column_edit(column_id):
+    """Return column edit page."""
     column = or_404(Column.query.filter_by(id=column_id).first())
     templates_dir = pathlib.Path("./item_templates")
     templates = [x.name for x in templates_dir.glob("*.txt")]
@@ -556,11 +630,13 @@ def column_edit(column_id):
 
 @app.route("/board/<board_id>/graph")
 def board_graph(board_id):
+    """Return board graph page."""
     board = or_404(Board.query.filter_by(id=board_id).first())
     return flask.render_template("graph.jinja2", board=board)
 
 
 def main(host="127.0.0.1", port=7777, debug=False):
+    """Run flask app."""
     app.run(host=host, port=port, debug=debug)
 
 

@@ -10,14 +10,29 @@
     <h2><i class="fa fa-bank fa-fw"></i> <a href="{{ url_for('boards') }}">Board List</a></h2>
   </header>
 
-  {% for board in boards if not board.closed %}
-    <div class="board w3-container w3-leftbar w3-white w3-panel">
-      <h3>
-        <a style="text-decoration: none;" href="/board/{{ board.id }}">{{ board.name }}</a> &nbsp; <a href="/board/{{ board.id }}/history"> {{ icon('calendar') }}</a> <a href="{{ url_for('board_graph', board_id=board.id) }}">{{ icon('map') }}</a> <a href="/board/{{ board.id }}/edit">{{ icon('cog') }}</a>
-      </h3>
-      <p>{% for lane in board.lanes %}<span style="padding-right: 10px;"><a href="{{ url_for('board', board_id=board.id) }}#lane_{{ lane.id }}">{{ lane.name }} </a></span>{% endfor%}</p>
+  {% if boards %}
+    {% for board in boards if not board.closed %}
+      <div class="board w3-container w3-leftbar w3-white w3-panel">
+        <h3>
+          <a style="text-decoration: none;" href="/board/{{ board.id }}">{{ board.name }}</a> &nbsp; <a href="/board/{{ board.id }}/history"> {{ icon('calendar') }}</a> <a href="{{ url_for('board_graph', board_id=board.id) }}">{{ icon('map') }}</a> <a href="/board/{{ board.id }}/edit">{{ icon('cog') }}</a>
+        </h3>
+        <p>{% for lane in board.lanes %}<span style="padding-right: 10px;"><a href="{{ url_for('board', board_id=board.id) }}#lane_{{ lane.id }}">{{ lane.name }} </a></span>{% endfor%}</p>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="w3-container w3-white w3-panel">
+      <h3>Import data from catboard instance</h3>
+      <p>
+        <form method="POST" action="/import_data_from_instance">
+          <label>Catboard instance URL:</label>
+          <input class="w3-input" type="text" name="instance_url"/>
+      </p>
+      <p>
+        <button class="w3-input w3-blue" type="Submit" value="Submit">Submit</button>
+      </p>
+      </form>
     </div>
-  {% endfor %}
+  {% endif %}
 
   <div class="w3-container w3-pale-yellow w3-panel">
     <h3>Create new board</h3>
@@ -49,7 +64,7 @@
 
   {% if version %}
     <div class="w3-container w3-panel w3-white">
-      <p>Catboard version: {{ version }}.</p>
+      <p>Catboard version: {{ version }} on host {{ hostname }}.</p>
     </div>
   {% endif %}
 

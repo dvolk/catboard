@@ -137,5 +137,14 @@ li:hover { opacity: 0.6; }
      today = mm + '/' + dd + '/' + yyyy + ' ' + hhh + ':' + mmm
      typeInTextarea(today, document.getElementById('description'))
  }
+// add w3 table classes to markdown generated tables
+window.onload = function() {
+    var tables = document.getElementsByTagName("table"),
+    len = tables !== null ? tables.length : 0,
+    i = 0;
+    for(i; i < len; i++) {
+        tables[i].className += " w3-table w3-border w3-hoverable w3-bordered";
+    }
+}
 </script>
 {% endblock %}
