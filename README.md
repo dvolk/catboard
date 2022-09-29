@@ -5,7 +5,9 @@
 - Lanes can have different columns
 - Responsive layout (works on phones)
 - All core functionality works without javascript enabled
-- Used in the UK government
+- Easy database export to/import from json
+- Use sqlite3, mysql or postgresql
+- Deploy with systemd, docker compose or kubernetes
 
 ## Screenshots
 
@@ -28,9 +30,10 @@
     </tr>
 </table>
 
-## Installation
+## Installation (linux)
 
-    git clone https://gitea.mmmoxford.uk/dvolk/catboard
+    sudo apt install python3 python3-pip
+    git clone https://github.com/dvolk/catboard
     cd catboard
     virtualenv env
     source env/bin/activate
