@@ -132,6 +132,6 @@ your_catboard_domain {
   }
   reverse_proxy http://127.0.0.1:7777
 }
-
-Caddy will set up a certificate automatically from letsencrypt.
 ```
+
+Caddy will automatically set up a certificate from letsencrypt.
