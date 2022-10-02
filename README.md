@@ -6,7 +6,7 @@
 - Responsive layout (works on phones)
 - All core functionality works without javascript enabled
 - Easy database export to/import from json
-- Use sqlite3, mysql or postgresql
+- Use sqlite3, mysql or postgresql databases
 - Deploy with systemd, docker or kubernetes
 
 ## Screenshots
@@ -36,7 +36,7 @@
 
 By default catboard uses sqlite3 (`./app.db`).
 
-If you would like to use a different database, set `CATBOARD_SQLALCHEMY_DATABASE_URI`.
+If you would like to use a different database, set the `CATBOARD_SQLALCHEMY_DATABASE_URI` environment variable.
 
 ```
 sudo apt install python3 python3-pip
@@ -56,11 +56,19 @@ python3 app.py
 
 ### Run with systemd
 
-Change the paths in the service file to whereever you've downloaded catboard
-
 ```
 cp catboard.service ~/.config/systemd/user/catboard.service
+```
+
+Change the paths in the service file to whereever you've downloaded catboard:
+
+```
 vi ~/.config/systemd/user/catboard.service
+```
+
+Start the catboard service:
+
+```
 systemctl daemon-reload --user
 systemctl start catboard
 ```
@@ -70,6 +78,8 @@ systemctl start catboard
 see `docker-compose.yml`.
 
 The docker deployment uses postgresql.
+
+Works in docker swarm mode too.
 
 ## Kubernetes deployment
 
@@ -123,3 +133,5 @@ your_catboard_domain {
   reverse_proxy http://127.0.0.1:7777
 }
 ```
+
+Caddy will automatically set up a certificate from letsencrypt.
