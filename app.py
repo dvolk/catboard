@@ -445,6 +445,16 @@ def lane_edit(lane_id):
     return flask.redirect(flask.url_for("lane_edit", lane_id=lane_id))
 
 
+def extract_links(md_text):
+    """Extract links from text."""
+    if not md_text:
+        return []
+    links = []
+    for group in to_md.link_patterns[0][0].findall(md_text):
+        links.append(group[0])
+    return links
+
+
 @app.route("/item/<item_id>", methods=["GET", "POST"])
 def item(item_id):
     """Return page showing item/task details."""
@@ -456,6 +466,8 @@ def item(item_id):
 
     if flask.request.method == "GET":
         rels = ItemRelationship.query.filter_by(item1_id=item.id, type=100).all()
+        links = extract_links(item.description)
+        print(item.description)
         return flask.render_template(
             "item.jinja2",
             item=item,
@@ -463,6 +475,7 @@ def item(item_id):
             title=item.name,
             nice_time=nice_time,
             rels=rels,
+            links=links,
         )
     if flask.request.method == "POST":
         unsafe_new_assign = flask.request.form.get("new_assign_name")
