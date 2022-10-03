@@ -3,7 +3,7 @@
 {% block content %}
 
   <header class="w3-container w3-blue-gray">
-    <h2><a href="{{ url_for('board', board_id=column.lane.board.id) }}"><i class="fa fa-arrow-left fa-fw"></i></a> {{ column.lane.name }} - {{ column.name }}</h2>
+    <h2><a href="{{ url_for('board', board_id=column.lane.board.id) }}">{{ icon('arrow-left') }}</a> {{ column.lane.name }} - {{ column.name }}</h2>
   </header>
 
   <div class="w3-half">
