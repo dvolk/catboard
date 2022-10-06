@@ -455,6 +455,11 @@ def extract_links(md_text):
     return links
 
 
+def url_is_image(link: str):
+    """Check if url is an image."""
+    return re.match(r".*(jpe?g?|png|gif)$", link.lower())
+
+
 @app.route("/item/<item_id>", methods=["GET", "POST"])
 def item(item_id):
     """Return page showing item/task details."""
@@ -467,7 +472,8 @@ def item(item_id):
     if flask.request.method == "GET":
         rels = ItemRelationship.query.filter_by(item1_id=item.id, type=100).all()
         links = extract_links(item.description)
-        print(item.description)
+        images = [link for link in links if url_is_image(link)]
+        print(images)
         return flask.render_template(
             "item.jinja2",
             item=item,
@@ -476,6 +482,7 @@ def item(item_id):
             nice_time=nice_time,
             rels=rels,
             links=links,
+            images=images,
         )
     if flask.request.method == "POST":
         unsafe_new_assign = flask.request.form.get("new_assign_name")

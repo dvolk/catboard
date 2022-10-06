@@ -112,6 +112,20 @@
       </ul>
     </div>
   {% endif %}
+  {% if images %}
+    <div class="w3-container w3-white w3-panel">
+      <h3>Images</h3>
+      {% for image in images %}
+        <div class="w3-container image">
+          <a rel="noreferrer nofollow" target="_blank" style="text-decoration: none;" href="{{ image }}">
+            <img src="{{ image }}" style="width: 80%;"/><br/>
+            <small>{{ icon('picture-o') }} {{ image }}</small>
+          </a>
+        </div>
+        <br/>
+      {% endfor %}
+    </div>
+  {% endif %}
 </div>
 
 
