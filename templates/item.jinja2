@@ -118,8 +118,8 @@
       {% for image in images %}
         <div class="w3-container image">
           <a rel="noreferrer nofollow" target="_blank" style="text-decoration: none;" href="{{ image }}">
-            <img src="{{ image }}" style="width: 100%;"/><br/>
-            <small>{{ icon('picture-o') }} {{ image }}</small>
+            <img src="{{ image }}" style="border-radius: 5px; width: 100%;"/><br/>
+            <small class="truncate">Figure: {{ image }}</small>
           </a>
         </div>
         <br/>
