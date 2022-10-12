@@ -133,7 +133,6 @@
 {% endblock %}
 
 {% block script %}
-<script>
  // scroll down
  var textarea = document.getElementById('description');
  textarea.scrollTop = textarea.scrollHeight;
@@ -158,9 +157,10 @@
      var hhh = String(today.getHours()).padStart(2, '0');
      var mmm = String(today.getMinutes()).padStart(2, '0');
 
-     today = mm + '/' + dd + '/' + yyyy + ' ' + hhh + ':' + mmm
+     today = yyyy + '-' + mm + '-' + dd + ' ' + hhh + ':' + mmm
      typeInTextarea(today, document.getElementById('description'))
  }
+
 // add w3 table classes to markdown generated tables
 window.onload = function() {
     var tables = document.getElementsByTagName("table"),
@@ -170,5 +170,4 @@ window.onload = function() {
         tables[i].className += " w3-table w3-border w3-hoverable w3-bordered";
     }
 }
-</script>
 {% endblock %}
