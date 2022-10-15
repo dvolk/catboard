@@ -13,10 +13,10 @@
           {{ column.name }}
         </a>
       {% endfor %}
-    </p>
-    <a style="line-height: 1; margin: 1px;" class="w3-btn w3-blue w3-round" href="{{ url_for('item_close_toggle', item_id=item.id) }}">
+    <a style="float: right; line-height: 1; margin: 1px;" class="w3-btn w3-blue w3-round" href="{{ url_for('item_close_toggle', item_id=item.id) }}">
       {% if item.closed %}Set Open{% else %}Set Closed{% endif %}
     </a>
+    </p>
     <p>
       {% for color in colors %}
         <a style="line-height: 1; margin: 1px;" class="w3-btn {{ color }} w3-round" href="{{ url_for('item_color', item_id=item.id, color=color) }}">
