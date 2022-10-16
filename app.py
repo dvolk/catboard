@@ -297,7 +297,6 @@ def prev_and_next_elems(elems, elem):
     """Given a list element, return the elements right before and after."""
     if type(elems) == str:
         elems = elems.split(",")
-    print(elems, elem)
     idx = elems.index(elem)
     prev_elem = None
     if idx > 0:
