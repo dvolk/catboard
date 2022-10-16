@@ -293,6 +293,21 @@ def boards():
         return flask.redirect(flask.url_for("boards"))
 
 
+def prev_and_next_elems(elems, elem):
+    """Given a list element, return the elements right before and after."""
+    if type(elems) == str:
+        elems = elems.split(",")
+    print(elems, elem)
+    idx = elems.index(elem)
+    prev_elem = None
+    if idx > 0:
+        prev_elem = elems[idx - 1]
+    next_elem = None
+    if idx < len(elems) - 1:
+        next_elem = elems[idx + 1]
+    return prev_elem, next_elem
+
+
 @app.route("/board/<board_id>")
 def board(board_id):
     """Return board template."""
@@ -304,6 +319,7 @@ def board(board_id):
         board=board,
         show_closed=show_closed,
         title=board.name,
+        prev_and_next_elems=prev_and_next_elems,
     )
 
 
