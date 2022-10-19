@@ -295,6 +295,8 @@ def boards():
 
 def prev_and_next_elems(elems, elem):
     """Given a list element, return the elements right before and after."""
+    if not elems or elem not in elems:
+        return None, None
     if type(elems) == str:
         elems = elems.split(",")
     idx = elems.index(elem)
