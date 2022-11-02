@@ -1,5 +1,9 @@
 {% extends 'base.jinja2' %}
 
+{% block head %}
+  <script src="/static/item.js" defer></script>
+{% endblock %}
+
 {% block content %}
 
   <header class="w3-container {{ item.color }}">
@@ -60,6 +64,28 @@
     </form>
   </div>
 <div class="w3-half">
+
+  {% if checkboxes %}
+    <div class="w3-container w3-white w3-panel">
+
+      <h3>Checklist</h3>
+      <ul class="w3-ul">
+        {% for checkbox in checkboxes %}
+          <li class="checklist_item truncate w3-pale-blue">
+            {% if checkbox["done"] %}
+              {{ icon('check-square-o') }}
+            {% else %}
+              {{ icon('square-o') }}
+            {% endif %}
+            {{ checkbox["text"] }}
+          </li>
+        {% endfor %}
+        <br/>
+      </ul>
+    </div>
+  {% endif %}
+
+
   {% if rels %}
     <div class="w3-container w3-white w3-panel">
 

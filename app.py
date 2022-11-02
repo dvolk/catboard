@@ -477,6 +477,35 @@ def url_is_image(link: str):
     return re.match(r".*(jpe?g?|png|gif)$", link.lower())
 
 
+def extract_checkboxes(text):
+    """Get all the checkboxes out of a item description.
+
+    Format:
+    - [ ] not finished
+    - [x] finished
+
+    Allow any kind of character in []? empty [] means not finished?
+    multiple characters allowed?
+    """
+    if not text:
+        return []
+    ret = list()
+    checkbox_line_re = re.compile(r"- \[(.?)\] (.*)")
+    for line in text.split("\n"):
+        m = checkbox_line_re.match(line)
+        if m:
+            checkbox_sym = m.group(1)
+            checkbox_text = m.group(2)
+            checkbox_done = checkbox_sym == "x"
+            ret.append(
+                {
+                    "done": checkbox_done,
+                    "text": checkbox_text,
+                }
+            )
+    return ret
+
+
 @app.route("/item/<item_id>", methods=["GET", "POST"])
 def item(item_id):
     """Return page showing item/task details."""
@@ -490,6 +519,7 @@ def item(item_id):
         rels = ItemRelationship.query.filter_by(item1_id=item.id, type=100).all()
         links = extract_links(item.description)
         images = [link for link in links if url_is_image(link)]
+        checkboxes = extract_checkboxes(item.description)
         print(images)
         return flask.render_template(
             "item.jinja2",
@@ -500,6 +530,7 @@ def item(item_id):
             rels=rels,
             links=links,
             images=images,
+            checkboxes=checkboxes,
         )
     if flask.request.method == "POST":
         unsafe_new_assign = flask.request.form.get("new_assign_name")
