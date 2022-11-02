@@ -17,7 +17,7 @@ function toggle_checkbox(description, checkbox_li) {
   var checklist_re = new RegExp(/- \[(.?)\] (.*)/);
   in_lines.forEach(line => {
     m = checklist_re.exec(line);
-    if (m.length > 1) {
+    if (m && m.length > 1) {
       checkbox2_sym = m[1];
       checkbox2_text = m[2];
       new_checkbox = 'x';
