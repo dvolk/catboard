@@ -87,14 +87,16 @@
       </div>
       <div style="display: inline-block">
         <p>
-          <button id="checklist_add" class="w3-btn w3-blue">{{ icon("plus-circle") }} Add</button>
+          <button id="checklist_add" class="w3-btn w3-pale-blue">{{ icon("plus-circle") }} Add</button>
         </p>
       </div>
+      {% if checkboxes %}
       <div style="display: inline-block">
         <p>
-          <button id="checklist_reset_all" class="w3-btn w3-blue">{{ icon("times") }} Reset all</button>
+          <button id="checklist_reset_all" class="w3-btn w3-pale-blue">{{ icon("times") }} Reset all</button>
         </p>
       </div>
+      {% endif %}
     </div>
 
 
