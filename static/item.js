@@ -1,18 +1,81 @@
-function toggle_checkbox(description, checkbox_li) {
+var checklist_re = new RegExp(/- \[(.?)\] (.*)/);
+
+function reset_checklist_items(description) {
+  /*
+    clear all checklist items
+  */
+  let in_lines = description.split("\n");
+  var out_lines = [];
+  var checklist_re = new RegExp(/- \[(.?)\] (.*)/);
+  in_lines.forEach(line => {
+    m = checklist_re.exec(line);
+    if (m && m.length > 1) {
+      let checklist_item2_text = m[2];
+      out_lines.push(`- [ ] ${checklist_item2_text}`);
+    }
+    else {
+      out_lines.push(line);
+    }
+  });
+  return out_lines.join("\n");
+}
+
+function add_checklist_item(description, item_text) {
+  /*
+    add an item to the checklist after the last item
+  */
+  let in_lines = description.split("\n");
+  var checklist_re = new RegExp(/- \[(.?)\] (.*)/);
+  var checklist_last_item = "";
+  in_lines.forEach(line => {
+    /* find last item */
+    m = checklist_re.exec(line);
+    if (m && m.length > 1) {
+      checklist_last_item = m[2];
+    }
+  });
+  console.log(checklist_last_item);
+  var out_lines = [];
+  if(checklist_last_item) {
+  in_lines.forEach(line => {
+    /* add new item after last item */
+    m = checklist_re.exec(line);
+    out_lines.push(line);
+    if(m && m.length > 1) {
+      let checklist_item2_text = m[2];
+      console.log(checklist_item2_text, checklist_last_item);
+      if(checklist_item2_text == checklist_last_item) {
+        out_lines.push(`- [ ] ${item_text}`);
+      }
+    }
+  });
+  }
+  else {
+    /*
+      add item at the end if there are no items
+    */
+    out_lines = in_lines;
+    out_lines.push("");
+    out_lines.push(`- [ ] ${item_text}`);
+  }
+  return out_lines.join("\n");
+}
+
+function toggle_checklist_item(description, checklist_li) {
   /*
     toggle checkbox, both in the checklist list, and
     the item description
   */
-  let checkbox_text = checkbox_li.innerText;
-  let checkbox_classes = checkbox_li.querySelector("i").classList;
-  let is_checked = checkbox_classes.contains("fa-check-square-o");
+  let checkbox_text = checklist_li.innerText;
+  let checklist_li_classes = checklist_li.querySelector("i").classList;
+  let is_checked = checklist_li_classes.contains("fa-check-square-o");
   if (is_checked) {
-    checkbox_classes.remove("fa-check-square-o");
-    checkbox_classes.add("fa-square-o");
+    checklist_li_classes.remove("fa-check-square-o");
+    checklist_li_classes.add("fa-square-o");
   }
   else {
-    checkbox_classes.remove("fa-square-o");
-    checkbox_classes.add("fa-check-square-o");
+    checklist_li_classes.remove("fa-square-o");
+    checklist_li_classes.add("fa-check-square-o");
   }
   /*
     go through description lines and toggle the checklist item
@@ -23,14 +86,14 @@ function toggle_checkbox(description, checkbox_li) {
   in_lines.forEach(line => {
     m = checklist_re.exec(line);
     if (m && m.length > 1) {
-      checkbox2_sym = m[1];
-      checkbox2_text = m[2];
-      new_checkbox = 'x';
+      let checklist_item2_sym = m[1];
+      let checklist_item2_text = m[2];
+      let new_checklist_status = 'x';
       if (is_checked) {
-        new_checkbox = ' ';
+        new_checklist_status = ' ';
       }
-      if (checkbox_text.endsWith(checkbox2_text)) {
-        out_lines.push(`- [${new_checkbox}] ${checkbox2_text}`);
+      if (checkbox_text.endsWith(checklist_item2_text)) {
+        out_lines.push(`- [${new_checklist_status}] ${checklist_item2_text}`);
       }
       else {
         out_lines.push(line);
@@ -79,14 +142,32 @@ function insert_date() {
 /*
   add click event handler to checklist items
 */
-const checklist_items = document.querySelectorAll(".checklist_item")
+const checklist_items = document.querySelectorAll(".checklist_item");
 
 checklist_items.forEach(checklist_item => {
-  checklist_item.addEventListener('click', (e) => {
+  checklist_item.addEventListener('click', e => {
     let desc_div = document.querySelector("#description");
-    let new_description = toggle_checkbox(desc_div.textContent, e.target);
+    let new_description = toggle_checklist_item(desc_div.textContent, e.target);
     desc_div.textContent = new_description;
   });
+});
+
+const reset_all_button = document.querySelector("#checklist_reset_all");
+reset_all_button.addEventListener('click', e => {
+    let desc_div = document.querySelector("#description");
+    let new_description = reset_checklist_items(desc_div.textContent);
+    desc_div.textContent = new_description;
+});
+
+document.querySelector("#checklist_add").addEventListener('click', e => {
+  let checklist_input = document.querySelector("#checklist_add_input");
+  if(! checklist_input.value) {
+    return;
+  }
+  let desc_div = document.querySelector("#description");
+  let new_description = add_checklist_item(desc_div.textContent, checklist_input.value);
+  desc_div.textContent = new_description;
+  checklist_input.value = "";
 });
 
 /*
