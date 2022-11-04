@@ -1,22 +1,20 @@
 {% extends 'base.jinja2' %}
 {% block content %}
-  <header class="w3-container {{ item.color }}">
+<header class="w3-container {{ item.color }}">
     <h2><a href="{{ url_for('item', item_id=item.id) }}">{{ icon('arrow-left') }}</a> {{ item.name }}</h2>
-  </header>
+</header>
 
-  <div style="padding-bottom: 30px;" class="w3-container w3-white w3-panel">
-{{ to_md(item.description) }}
-  </div>
+<div style="padding-bottom: 30px;" class="w3-container w3-white w3-panel">
+    {{ to_md(item.description) }}
+</div>
 {% endblock %}
 
 {% block script %}
-// add w3 table classes to markdown generated tables
 window.onload = function() {
-    var tables = document.getElementsByTagName("table"),
-    len = tables !== null ? tables.length : 0,
-    i = 0;
-    for(i; i < len; i++) {
-        tables[i].className += " w3-table w3-border w3-hoverable w3-bordered";
-    }
+    // add w3 table classes to markdown generated tables
+    var tables = Array.from(document.getElementsByTagName("table"));
+    tables.forEach((t) => {
+        t.className += " w3-table w3-border w3-hoverable w3-bordered";
+    });
 }
 {% endblock %}
