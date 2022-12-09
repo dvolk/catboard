@@ -1,6 +1,6 @@
 alembic==1.6.5
 argh==0.26.2
-certifi==2022.6.15.1
+certifi==2022.12.7
 cffi==1.15.1
 charset-normalizer==2.1.1
 click==8.0.1
