@@ -689,11 +689,18 @@ def column_edit(column_id):
             )
             db.session.add(t)
             db.session.commit()
+            return flask.redirect(
+                flask.url_for("board", board_id=item.column.lane.board.id)
+                + f"#lane_{item.column.lane.id}"
+            )
         if flask.request.form.get("Submit") == "Submit_rename_column":
             unsafe_new_column_name = flask.request.form.get("new_column_name")
             column.name = unsafe_new_column_name
             db.session.commit()
-        return flask.redirect(flask.url_for("item", item_id=item.id))
+            return flask.redirect(
+                flask.url_for("board", board_id=column.lane.board.id)
+                + f"#lane_{column.lane.id}"
+            )
 
 
 @app.route("/board/<board_id>/graph")
