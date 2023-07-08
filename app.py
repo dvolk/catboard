@@ -177,6 +177,12 @@ def login():
         return flask.render_template("login.jinja2")
 
 
+@app.route("/logout")
+def logout():
+    logout_user()
+    return flask.redirect(flask.url_for("login"))
+
+
 @login_manager.user_loader
 def load_user(user_id):
     """
