@@ -515,7 +515,7 @@ def lane_edit(lane_id):
         flask.abort(403)
 
     if flask.request.method == "GET":
-        boards = Board.query.all()
+        boards = current_user.boards
         column_id_to_name = {column.id: column.name for column in lane.columns}
         column_names = [column.name for column in lane.columns]
         columns_sorted = None
@@ -654,9 +654,13 @@ def item(item_id):
                     subtask_int = int(subtask)
                 except Exception:
                     pass
-                # check if item exists
                 item2 = Item.query.filter_by(id=subtask_int).first()
+                # check if item exists
                 if not item2:
+                    continue
+                # check if user has access to item
+                if item2.column.lane.board not in current_user.boards:
+                    print("bad user :(")
                     continue
                 if subtask_int not in subtask_ints:
                     db.session.add(
