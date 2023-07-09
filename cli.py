@@ -56,7 +56,7 @@ def user_remove_board(username, board_id):
             user.boards.remove(board)
             db.session.commit()
         else:
-            print(f"No board found with name: {board_id}")
+            print(f"No board found with id: {board_id}")
     else:
         print(f"No user found with username: {username}")
 
