@@ -89,49 +89,22 @@ The kubernetes deployment uses mysql 8.
 
 ## Authentication
 
-Catboard doesn't provide any authentication.
-
-If you want to run a publically accessible catboard, you can configure your web server to use basic authentication on the catboard domain.
-
-Examples for nginx and caddy 2.0+ follow:
-
-### nginx
-
-Create a `htpasswd` file with the `htpasswd` command.
+To add users, use cli.py:
 
 ```
-server {
-    server_name catboard.example.com;
-
-    listen 443 ssl;
-    ssl_certificate /path/to/certs/example.com.cert.pem;
-    ssl_certificate_key /path/to/certs/example.com.key.pem;
-
-    location / {
-        auth_basic "Restricted Content";
-        auth_basic_user_file /etc/nginx/.htpasswd;
-
-        proxy_pass http://127.0.0.1:7777;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header X-Forwarded-For $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
+python3 cli.py add-user username password
 ```
 
-### caddy 2.0+
+## Other CLI commands
 
-use `caddy hash-password` to create the `PASSWORD_HASH`
+Commands provided by cli.py are:
 
 ```
-your_catboard_domain {
-  basicauth /* {
-    USERNAME PASSWORD_HASH
-  }
-  reverse_proxy http://127.0.0.1:7777
-}
+list-users  # list users
+list-boards  # list boards
+add-user  # add a user
+remove-user  # remove (delete) a user
+set-password  # set a user's password
+user-add-board  # add a board to a user
+user-remove-board  # remove a board from a user
 ```
-
-Caddy will automatically set up a certificate from letsencrypt.
