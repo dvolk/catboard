@@ -26,17 +26,18 @@
   <body class="w3-light-gray">
 
     <header class="w3-container w3-black w3-bar">
-      <span class="w3-bar-item w3-large">
-        {{ icon('user-circle') }} {{ current_user.username }}
-      </span>
-      <span class="w3-bar-item" style="margin-top: 2px;">
+      <span class="w3-bar-item w3-right" style="margin-top: 2px;">
         <a href="{{ url_for('logout') }}">
           {{ icon('sign-out') }} Sign-out
         </a>
       </span>
-      <span class="w3-bar-item w3-large w3-right">
+      <span class="w3-bar-item w3-right" style="margin-top: 2px;">
+        {{ icon('user-circle') }} {{ current_user.username }}
+      </span>
+      <span class="w3-bar-item w3-large">
         <a rel="noreferrer nofollow" target="_blank" href="https://github.com/dvolk/catboard">
-          {{ icon('git-square') }} Catboard
+          <img style="position: relative; top: -2px;" height=24 src="{{ url_for('static', filename="cat-face_1f431.png") }}">
+          board
         </a>
       </span>
     </header>
