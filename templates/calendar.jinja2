@@ -1,0 +1,100 @@
+{% extends 'base.jinja2' %}
+
+{% block head %}
+<style>
+ .calendar {
+     display: grid;
+     grid-template-columns: repeat(7, 1fr);
+     grid-gap: 4px;
+ }
+
+ /* Mobile view: one column */
+ @media screen and (max-width: 600px) {
+     .calendar {
+         grid-template-columns: 1fr;
+     }
+
+     .header {
+         display: none; /* Hide headers */
+     }
+ }
+</style>
+{% endblock %}
+
+{% block content %}
+  <header class="w3-container w3-indigo">
+    <h2>{{ icon('calendar') }} Calendar</h2>
+  </header>
+
+  <div class="w3-main" style="padding-bottom: 100px;">
+
+    {% for month in months %}
+      <div class="w3-container w3-white w3-padding w3-center">
+
+        {% set month_str = month[1][1].strftime("%B") %}
+        <h2 id="{{ month[1][1].month }}">{{ month_str }}
+        </h2>
+        <div class="calendar">
+
+          <div class="header w3-hide-small w3-center">Mon</div>
+          <div class="header w3-hide-small w3-center">Tue</div>
+          <div class="header w3-hide-small w3-center">Wed</div>
+          <div class="header w3-hide-small w3-center">Tur</div>
+          <div class="header w3-hide-small w3-center">Fri</div>
+          <div class="header w3-hide-small w3-center">Sat</div>
+          <div class="header w3-hide-small w3-center">Sun</div>
+
+          {% for week in month %}
+            {% for day in week %}
+              {% if not day %}
+                <div></div>
+              {% else %}
+                {% if day.date() == now.date() %}
+                  {% set top_day_color = "w3-pink" %}
+                  {% set today = True %}
+                {% else %}
+                  {% set top_day_color = "w3-light-gray" %}
+                {% endif %}
+                {% if day.weekday() < 5 %}
+                  {% set day_color = "slategray" %}
+                {% else %}
+                  {% set day_color = "seagreen" %}
+                {% endif %}
+
+                <div onclick="location.href='/calendar_day/{{ day.date() }}'" style="color: white; background-color: {{ day_color }}; {% if today %}border: 3px solid pink !important;{% endif %}" class="w3-border">
+                  <div class="w3-container {{ top_day_color }}" style="opacity: 80%">
+                    {{ day.day }}
+                  </div>
+                  <div>
+                    <div class="">
+                      {% set holiday = eng_holidays.get(day.date()|string) %}
+                      {% if holiday %}
+                        <span class="w3-blue w3-small">
+                          {{ holiday }}</span>
+                        {% endif %}
+                        {% set text = user_caldays.get(day.date()|string).text %}
+                        {% if text and holiday %}
+                          <br/>
+                        {% endif %}
+                      {% if not text %}
+                        &nbsp;
+                      {% else %}
+                      {% for t in text.split("\n") %}
+                        <span class="{{ random_color(t.strip()) }}">{{ t }}</span><br/>
+                      {% endfor %}
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+    <div class="w3-white">
+      <br/>
+    </div>
+  </div>
+
+{% endblock %}

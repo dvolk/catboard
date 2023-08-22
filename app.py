@@ -10,6 +10,9 @@ import shlex
 import json
 import os
 import secrets
+import calendar
+import datetime
+import holidays
 
 import argh
 import flask
@@ -156,6 +159,17 @@ class User(db.Model, UserMixin):
 
     def check_password(self, maybe_password):
         return check_password_hash(self.password_hash, maybe_password)
+
+
+class CalDay(db.Model):
+    """Calendar day class."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    date_str = db.Column(db.String(10), nullable=False, index=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("user.id"), nullable=False, index=True
+    )
+    text = db.Column(db.Text)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -344,7 +358,10 @@ def boards():
     boards = current_user.boards
     if flask.request.method == "GET":
         return flask.render_template(
-            "boards.jinja2", boards=boards, title="Board index"
+            "boards.jinja2",
+            boards=boards,
+            title="Board index",
+            now=datetime.datetime.now(),
         )
     if flask.request.method == "POST":
         unsafe_new_board_name = flask.request.form.get("new_board_name")
@@ -874,6 +891,73 @@ def board_graph(board_id):
         flask.abort(403)
 
     return flask.render_template("graph.jinja2", board=board)
+
+
+def monthcalendar_with_datetimes(year, month):
+    cal = calendar.monthcalendar(year, month)
+    datetimes = [
+        [datetime.datetime(year, month, day) if day != 0 else None for day in week]
+        for week in cal
+    ]
+    return datetimes
+
+
+@app.route("/calendar")
+@login_required
+def user_calendar():
+    """Render a calendar for the user."""
+    user_caldays = (
+        db.session.query(CalDay).filter(CalDay.user_id == current_user.id).all()
+    )
+    eng_holidays = holidays.country_holidays("UK", subdiv="ENG")
+    for cd in user_caldays:
+        print(cd, cd.date_str, cd.text)
+
+    def random_color(text):
+        return colors[hash(text) % len(colors)]
+
+    user_caldays = {cd.date_str: cd for cd in user_caldays}
+    print(user_caldays)
+    now = datetime.datetime.now()
+
+    months = [monthcalendar_with_datetimes(now.year, i) for i in range(1, 13)]
+    return flask.render_template(
+        "calendar.jinja2",
+        months=months,
+        now=now,
+        user_caldays=user_caldays,
+        eng_holidays=eng_holidays,
+        random_color=random_color,
+    )
+
+
+@app.route("/calendar_day/<date_str>", methods=["GET", "POST"])
+@login_required
+def user_calendar_day(date_str):
+    calday = CalDay.query.filter_by(
+        user_id=current_user.id,
+        date_str=date_str,
+    ).first()
+
+    if flask.request.method == "POST":
+        print(flask.request.form)
+        text = flask.request.form.get("cal_text")
+        if not calday:
+            calday = CalDay(
+                date_str=date_str,
+                user_id=current_user.id,
+                text=text,
+            )
+            db.session.add(calday)
+        else:
+            calday.text = text
+        db.session.commit()
+        return flask.redirect(flask.url_for("user_calendar"))
+
+    return flask.render_template(
+        "cal_day.jinja2",
+        calday=calday,
+    )
 
 
 def main(host="127.0.0.1", port=7777, debug=False):
