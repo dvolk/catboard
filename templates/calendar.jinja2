@@ -61,7 +61,7 @@
                   {% set day_color = "seagreen" %}
                 {% endif %}
 
-                <div onclick="location.href='/calendar_day/{{ day.date() }}'" style="color: white; background-color: {{ day_color }}; {% if today %}border: 3px solid pink !important;{% endif %}" class="w3-border">
+                <div onclick="location.href='/calendar_day/{{ day.date() }}'" style="color: white; background-color: {{ day_color }}; {% if today %}background-color: pink !important;{% endif %}" class="w3-border">
                   <div class="w3-container {{ top_day_color }}" style="opacity: 80%">
                     {{ day.day }}
                   </div>
