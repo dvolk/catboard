@@ -33,6 +33,7 @@ spec:
     spec:
       containers:
       - image: git.oxfordfun.com/dv/catboard:latest
+        imagePullPolicy: IfNotPresent
         name: catboard
         env:
         - name: CATBOARD_SQLALCHEMY_DATABASE_URI
