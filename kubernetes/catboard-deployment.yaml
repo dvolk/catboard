@@ -32,7 +32,7 @@ spec:
         tier: frontend
     spec:
       containers:
-      - image: git.oxfordfun.com/dv/catboard:latest
+      - image: git.oxfordfun.com/dv/catboard:test
         imagePullPolicy: IfNotPresent
         name: catboard
         env:
