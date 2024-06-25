@@ -10,7 +10,6 @@ spec:
   selector:
     app: catboard
     tier: frontend
-  type: LoadBalancer
 ---
 apiVersion: apps/v1
 kind: Deployment
