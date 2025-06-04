@@ -3,3 +3,4 @@
 *.db
 .mypy_cache
 .ropeproject
+env/

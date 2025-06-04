@@ -738,7 +738,7 @@ def item_move(item_id, column_id):
 def lane_move(lane_id, board_id):
     """Move lane to diferent board and redirect back to lane page."""
     lane = or_404(Lane.query.filter_by(id=lane_id).first())
-    or_404(Board.query.filter_by(id=board_id).first())
+    board = or_404(Board.query.filter_by(id=board_id).first())
 
     if lane.board not in current_user.boards:
         flask.abort(403)
