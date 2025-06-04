@@ -6,7 +6,7 @@ Flask==2.3.3
 Flask-Login==0.6.2
 Flask-Migrate==4.0.4
 Flask-SQLAlchemy==3.0.5
-greenlet==2.0.2
+greenlet==3.2.2
 holidays==0.31
 humanize==4.8.0
 itsdangerous==2.1.2
