@@ -889,6 +889,11 @@ def column_edit(column_id):
             )
             db.session.add(t)
             db.session.commit()
+            if (
+                flask.request.accept_mimetypes.accept_json
+                and not flask.request.accept_mimetypes.accept_html
+            ):
+                return json.dumps({"id": item.id, "name": item.name})
             return flask.redirect(
                 flask.url_for("board", board_id=item.column.lane.board.id)
                 + f"#lane_{item.column.lane.id}"
