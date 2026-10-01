@@ -39,7 +39,7 @@
           <div class="header w3-hide-small w3-center">Mon</div>
           <div class="header w3-hide-small w3-center">Tue</div>
           <div class="header w3-hide-small w3-center">Wed</div>
-          <div class="header w3-hide-small w3-center">Tur</div>
+          <div class="header w3-hide-small w3-center">Thu</div>
           <div class="header w3-hide-small w3-center">Fri</div>
           <div class="header w3-hide-small w3-center">Sat</div>
           <div class="header w3-hide-small w3-center">Sun</div>
@@ -56,9 +56,9 @@
                   {% set top_day_color = "w3-light-gray" %}
                 {% endif %}
                 {% if day.weekday() < 5 %}
-                  {% set day_color = "slategray" %}
+                  {% set day_color = "white" %}
                 {% else %}
-                  {% set day_color = "seagreen" %}
+                  {% set day_color = "ivory" %}
                 {% endif %}
 
                 <div onclick="location.href='/calendar_day/{{ day.date() }}'" style="color: white; background-color: {{ day_color }}; {% if today %}background-color: pink !important;{% endif %}" class="w3-border">

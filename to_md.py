@@ -4,6 +4,7 @@ import html
 import re
 
 import markdown2
+from markupsafe import Markup
 
 pattern = (
     r"((([A-Za-z]{3,9}:(?:\/\/)?)"  # scheme
@@ -26,16 +27,20 @@ link_patterns = [
 
 def text_to_html(text):
     """Turn markdown text into html, plus some useful extensions."""
-    return markdown2.markdown(
-        html.escape(text),
-        extras=[
-            "link-patterns",
-            "wiki-tables",
-            "task_list",
-            "code-friendly",
-            "cuddled-lists",
-            "fenced-code-blocks",
-            "break-on-newline",
-        ],
-        link_patterns=link_patterns,
+    if not text:
+        return ""
+    return Markup(
+        markdown2.markdown(
+            html.escape(text),
+            extras=[
+                "link-patterns",
+                "wiki-tables",
+                "task_list",
+                "code-friendly",
+                "cuddled-lists",
+                "fenced-code-blocks",
+                "break-on-newline",
+            ],
+            link_patterns=link_patterns,
+        )
     )

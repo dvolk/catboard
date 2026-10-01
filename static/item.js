@@ -147,17 +147,19 @@ const checklist_items = document.querySelectorAll(".checklist_item");
 checklist_items.forEach(checklist_item => {
   checklist_item.addEventListener('click', e => {
     let desc_div = document.querySelector("#description");
-    let new_description = toggle_checklist_item(desc_div.textContent, e.target);
+    let new_description = toggle_checklist_item(desc_div.textContent, e.currentTarget);
     desc_div.textContent = new_description;
   });
 });
 
 const reset_all_button = document.querySelector("#checklist_reset_all");
-reset_all_button.addEventListener('click', e => {
-    let desc_div = document.querySelector("#description");
-    let new_description = reset_checklist_items(desc_div.textContent);
-    desc_div.textContent = new_description;
-});
+if (reset_all_button) {
+    reset_all_button.addEventListener('click', e => {
+        let desc_div = document.querySelector("#description");
+        let new_description = reset_checklist_items(desc_div.textContent);
+        desc_div.textContent = new_description;
+    });
+}
 
 document.querySelector("#checklist_add").addEventListener('click', e => {
   let checklist_input = document.querySelector("#checklist_add_input");

@@ -6,7 +6,7 @@ from app import app, db, User, Board
 def list_users():
     with app.app_context():
         for u in User.query.all():
-            print(f"{u.id}. {u.username}")
+            print(f"{u.id}. {u.username} (boards: {u.boards})")
 
 
 def list_boards():

@@ -90,7 +90,7 @@ var g = {
   {% for lane in board.lanes if not lane.closed %}
     {% for column in lane.columns if not column.closed %}
       {% for item in column.items if not item.closed %}
-        g.nodes.push({ id: "{{ item.id }}", label: "{{ item.name }} ({{ item.column.name }})", color: "#333", size:0.5, x:Math.random(), y:Math.random(),});
+        g.nodes.push({ id: "{{ item.id }}", label: {{ (item.name ~ " (" ~ item.column.name ~ ")") | tojson }}, color: "#333", size:0.5, x:Math.random(), y:Math.random(),});
         {% for rel in item.source_relationships %}
           g.edges.push({ id: "{{ rel.id }}", source: "{{ rel.item1.id }}", target: "{{ rel.item2.id }}", color: '#ccc' });
         {% endfor %}

@@ -17,6 +17,7 @@ import holidays
 import argh
 import flask
 import humanize
+from markupsafe import Markup
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import (
@@ -32,10 +33,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import to_md
 
 app = flask.Flask(__name__)
+app.jinja_options["autoescape"] = True
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = dt.timedelta(hours=12)
-app.config["SECRET_KEY"] = secrets.token_urlsafe()
+app.config["SECRET_KEY"] = os.getenv("CATBOARD_SECRET_KEY") or secrets.token_urlsafe()
 if os.getenv("CATBOARD_SQLALCHEMY_DATABASE_URI"):
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
         "CATBOARD_SQLALCHEMY_DATABASE_URI"
@@ -186,7 +188,7 @@ def login():
             return flask.redirect(flask.url_for("boards"))
         else:
             print("wrong password")
-            flask.abort(403)
+            flask.abort(404)
     if flask.request.method == "GET":
         return flask.render_template("login.jinja2")
 
@@ -229,7 +231,7 @@ def or_404(arg):
 
 def icon(name):
     """Format html for fontawesome icons."""
-    return f'<i class="fa fa-{name} fa-fw"></i>'
+    return Markup(f'<i class="fa fa-{name} fa-fw"></i>')
 
 
 def list_reorder(list1, list2):
@@ -316,11 +318,12 @@ def import_rows(rows, cls):
 def import_data_from_instance():
     """Import data from a different instance."""
     catboard_url = flask.request.form.get("instance_url")
+    if not re.match(r"^https?://", catboard_url or ""):
+        flask.abort(400)
     catboard_export_url = catboard_url.rstrip("/") + "/export_data"
-    print(catboard_export_url)
     import requests
 
-    data = requests.get(catboard_export_url).json()
+    data = requests.get(catboard_export_url, timeout=10).json()
     import_data(data)
 
     return flask.redirect(flask.url_for("index"))
@@ -331,9 +334,9 @@ def import_data(data):
     import_rows(data["Board"], Board)
     import_rows(data["Lane"], Lane)
     import_rows(data["Column"], Column)
+    import_rows(data["Item"], Item)
     import_rows(data["ItemRelationship"], ItemRelationship)
     import_rows(data["ItemTransition"], ItemTransition)
-    import_rows(data["Item"], Item)
     db.session.commit()
 
 
@@ -355,6 +358,20 @@ def app_import_data():
 @login_required
 def boards():
     """Return boards template."""
+    user_caldays = (
+        db.session.query(CalDay).filter(CalDay.user_id == current_user.id).all()
+    )
+    user_caldays = {cd.date_str: cd for cd in user_caldays}
+
+    eng_holidays = holidays.country_holidays("UK", subdiv="ENG")
+
+    def random_color(text):
+        return colors[hash(text) % len(colors)]
+
+    now = datetime.datetime.now()
+    next_seven_days = [now + datetime.timedelta(days=i) for i in range(8)]
+    print(user_caldays)
+
     boards = current_user.boards
     if flask.request.method == "GET":
         return flask.render_template(
@@ -362,6 +379,8 @@ def boards():
             boards=boards,
             title="Board index",
             now=datetime.datetime.now(),
+            user_caldays=user_caldays,
+            next_seven_days=next_seven_days,
         )
     if flask.request.method == "POST":
         unsafe_new_board_name = flask.request.form.get("new_board_name")
@@ -480,8 +499,9 @@ def board_edit(board_id):
         lanes_sorted = None
         if board.lanes_sorted:
             lanes_sorted = [
-                lane_id_to_name[int(lane_id)]
+                lane_id_to_name.get(int(lane_id))
                 for lane_id in board.lanes_sorted.split(",")
+                if lane_id_to_name.get(int(lane_id))
             ]
 
         return flask.render_template(
@@ -592,7 +612,7 @@ def extract_links(md_text):
 
 def url_is_image(link: str):
     """Check if url is an image."""
-    return re.match(r".*(jpe?g?|png|gif)$", link.lower())
+    return re.search(r"\.(?:jpe?g|png|gif)$", link.lower()) is not None
 
 
 def extract_checkboxes(text):
@@ -662,30 +682,28 @@ def item(item_id):
         item.name = unsafe_new_name
         unsafe_new_description = flask.request.form.get("new_description")
         item.description = unsafe_new_description
-        if item.description:
-            ItemRelationship.query.filter_by(item1_id=item.id).delete()
-            db.session.commit()
-            subtask_ints = set()
-            for subtask in re.findall(r"subtask #(\d+)", item.description):
-                try:
-                    subtask_int = int(subtask)
-                except Exception:
-                    pass
-                item2 = Item.query.filter_by(id=subtask_int).first()
-                # check if item exists
-                if not item2:
-                    continue
-                # check if user has access to item
-                if item2.column.lane.board not in current_user.boards:
-                    print("bad user :(")
-                    continue
-                if subtask_int not in subtask_ints:
-                    db.session.add(
-                        ItemRelationship(
-                            item1_id=item.id, item2_id=subtask_int, type=100
-                        )
+        ItemRelationship.query.filter_by(item1_id=item.id).delete()
+        subtask_ints = set()
+        for subtask in re.findall(r"subtask #(\d+)", item.description or ""):
+            try:
+                subtask_int = int(subtask)
+            except Exception:
+                pass
+            item2 = Item.query.filter_by(id=subtask_int).first()
+            # check if item exists
+            if not item2:
+                continue
+            # check if user has access to item
+            if item2.column.lane.board not in current_user.boards:
+                print("bad user :(")
+                continue
+            if subtask_int not in subtask_ints:
+                db.session.add(
+                    ItemRelationship(
+                        item1_id=item.id, item2_id=subtask_int, type=100
                     )
-                    subtask_ints.add(subtask_int)
+                )
+                subtask_ints.add(subtask_int)
 
         db.session.commit()
         if flask.request.form.get("Submit") == "Submit_print":
@@ -830,7 +848,7 @@ def column_edit(column_id):
     if column.lane.board not in current_user.boards:
         flask.abort(403)
 
-    templates_dir = pathlib.Path("./item_templates")
+    templates_dir = pathlib.Path(__file__).parent / "item_templates"
     templates = [x.name for x in templates_dir.glob("*.txt")]
     if flask.request.method == "GET":
         random_color = random.choice(colors)
@@ -857,8 +875,12 @@ def column_edit(column_id):
                 column=column,
             )
             if unsafe_new_item_template in templates:
-                with open(templates_dir / unsafe_new_item_template) as f:
-                    item.description = f.read()
+                template_path = templates_dir / unsafe_new_item_template
+                if not template_path.resolve().is_relative_to(templates_dir.resolve()):
+                    flask.abort(404)
+                if not template_path.exists():
+                    flask.abort(404)
+                item.description = template_path.read_text()
 
             column.items.append(item)
             db.session.commit()
@@ -910,17 +932,18 @@ def user_calendar():
         db.session.query(CalDay).filter(CalDay.user_id == current_user.id).all()
     )
     eng_holidays = holidays.country_holidays("UK", subdiv="ENG")
-    for cd in user_caldays:
-        print(cd, cd.date_str, cd.text)
 
     def random_color(text):
         return colors[hash(text) % len(colors)]
 
     user_caldays = {cd.date_str: cd for cd in user_caldays}
-    print(user_caldays)
+
     now = datetime.datetime.now()
+    next_seven_days = [now + datetime.timedelta(days=i) for i in range(8)]
+    print(next_seven_days)
 
     months = [monthcalendar_with_datetimes(now.year, i) for i in range(1, 13)]
+
     return flask.render_template(
         "calendar.jinja2",
         months=months,
@@ -928,6 +951,7 @@ def user_calendar():
         user_caldays=user_caldays,
         eng_holidays=eng_holidays,
         random_color=random_color,
+        next_seven_days=next_seven_days,
     )
 
 
